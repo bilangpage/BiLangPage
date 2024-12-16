@@ -1,0 +1,156 @@
+<!--
+  BiLangPage - Bilingual Web Experience
+  https://github.com/wujiuye/bilangpage
+  
+  Copyright (C) 2024 BiLangPage
+  Author: wujiuye <wujiuye99@gmail.com>
+  
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      background-color: #1a1a1a;
+      color: #ffffff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      color: #ffffff;
+    }
+
+    .select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .select-wrapper::after {
+      content: "▼";
+      font-size: 12px;
+      color: #ffffff;
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    select {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 2px solid #4a4a4a;
+      border-radius: 6px;
+      background-color: #2d2d2d;
+      color: #ffffff;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    select:hover {
+      border-color: #666666;
+      background-color: #333333;
+    }
+
+    select:focus {
+      border-color: #0079d3;
+      box-shadow: 0 0 0 2px rgba(0, 121, 211, 0.2);
+    }
+
+    option {
+      background-color: #2d2d2d;
+      color: #ffffff;
+      padding: 8px;
+    }
+
+    .footer {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #888888;
+      text-align: center;
+    }
+
+    .settings-group {
+      margin-bottom: 16px;
+    }
+    
+    .settings-label {
+      display: block;
+      margin-bottom: 8px;
+      color: #888888;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">BiLangPage</h1>
+    
+    <div class="settings-group">
+      <label class="settings-label">Target Language</label>
+      <div class="select-wrapper">
+        <select id="targetLang">
+          <option value="zh-CN">简体中文</option>
+          <option value="zh-TW">繁體中文</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <label class="settings-label">Theme Style</label>
+      <div class="select-wrapper">
+        <select id="theme">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="deepBlue">Deep Blue</option>
+          <option value="darkGrayOrange">Dark Gray & Orange</option>
+          <option value="brownYellow">Brown & Yellow</option>
+          <option value="almostBlackSkyBlue">Almost Black & Sky Blue</option>
+          <option value="purpleYellow">Purple & Yellow</option>
+          <option value="darkGreenLightGreen">Dark Green & Light Green</option>
+          <option value="blackNeonGreen">Black & Neon Green</option>
+          <option value="mysticBlackSlateBlue">Mystic Black & Slate Blue</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="footer">
+      Customize display settings
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html> 
