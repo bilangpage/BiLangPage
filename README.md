@@ -52,7 +52,7 @@ While a universal translation solution might seem appealing, we've chosen a site
 
 ## Installation
 
-1. Visit [Chrome Web Store](#) (coming soon)
+1. Visit [Chrome Web Store](https://chromewebstore.google.com/detail/bilangpage/ecglmijmieonanjgfojbcapmkgpahhil)
 2. Click "Add to Chrome"
 3. Choose your preferred language and theme in the extension popup
 
