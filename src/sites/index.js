@@ -52,7 +52,7 @@ const siteAdapters = {
       return element.textContent.trim();
     }
   },
-  
+
   // Twitter 适配器示例
   'x.com': {
     name: 'Twitter',
@@ -74,21 +74,73 @@ const siteAdapters = {
       {
         type: 'post',
         elements: [
-            'main a[href^="/posts/"]',
-            'main a[href^="/products/"]',
-            'h1',
-            'h2',
-            'div[class^="styles_htmlText"]',
+          'main a[href^="/posts/"]',
+          'main a[href^="/products/"]',
+          'h1',
+          'h2',
+          'div[class^="styles_htmlText"]',
         ]
       }
     ]
-  }
+  },
+
+  // Quora 适配器
+  'quora.com': {
+    name: 'Quora',
+    selectors: [
+      {
+        type: 'post',
+        elements: [
+          '#mainContent span.q-box.qu-userSelect--text span',
+          '#mainContent span.q-box.qu-userSelect--text p span'
+        ]
+      }
+    ],
+    processElement: (element) => {
+      const text = element.textContent.trim();
+      return text;
+    }
+  },
+
+  // Medium 适配器
+  'medium.com': {
+    name: 'Medium',
+    selectors: [
+      {
+        type: 'feed',
+        elements: [
+          'main h2',
+          'main h3',
+        ]
+      },
+      {
+        type: 'article',
+        elements: [
+          'article h1',
+          'article h2',
+          'article h3',
+          'article h4',
+          'article h5',
+          'article h6',
+          'article p[class*="pw-post-body-paragraph"]',
+          'article ul li',
+          'article ol li',
+        ]
+      },
+      {
+        type: 'comment',
+        elements: [
+          'pre'
+        ]
+      }
+    ]
+  },
 
 };
 
 // 获取当前网站的适配器
 function getSiteAdapter(hostname) {
-  return Object.entries(siteAdapters).find(([domain]) => 
+  return Object.entries(siteAdapters).find(([domain]) =>
     hostname.includes(domain)
   )?.[1];
 }
@@ -97,7 +149,7 @@ function getSiteAdapter(hostname) {
 window.siteAdapters = {
   getSiteAdapter,
   adapters: siteAdapters
-}; 
+};
 
 // 触发初始化完成事件
 window.dispatchEvent(new Event('siteAdaptersLoaded'));
