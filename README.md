@@ -37,6 +37,8 @@ BiLangPage is a Chrome extension that provides instant bilingual translations fo
 - Reddit: Posts, comments, and community content
 - X (Twitter): Tweets and conversations
 - Product Hunt: Product descriptions and discussions
+- Quora: Questions, answers, and comments
+- Medium: Articles, stories, and responses
 
 More websites coming soon!
 

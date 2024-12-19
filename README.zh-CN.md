@@ -30,6 +30,8 @@ BiLangPage 是一个 Chrome 浏览器扩展，可以为流行网站提供即时�
 - Reddit：帖子、评论和社区内容
 - X (Twitter)：推文和对话
 - Product Hunt：产品描述和讨论
+- Quora：问答、回复和评论
+- Medium：文章、故事和评论
 
 更多网站即将支持！
 
