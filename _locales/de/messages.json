@@ -1,5 +1,11 @@
 {
-  "appName": "BiLangPage - Zweisprachiges Web-Erlebnis",
-  "appShortName": "BiLangPage",
-  "appDesc": "Verwandeln Sie Ihr Web-Browsing mit nahtlosen zweisprachigen Übersetzungen. Zeigt automatisch Übersetzungen neben dem Originaltext auf Reddit, X (Twitter) und ProductHunt an."
+  "appName": {
+    "message": "BiLangPage - Zweisprachiges Web-Erlebnis"
+  },
+  "appShortName": {
+    "message": "BiLangPage"
+  },
+  "appDesc": {
+    "message": "Verwandeln Sie Ihr Web-Browsing mit nahtlosen zweisprachigen Übersetzungen. Zeigt automatisch Übersetzungen neben dem Originaltext auf Reddit, X (Twitter) und ProductHunt an."
+  }
 } 

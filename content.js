@@ -19,8 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
  */
 
-import { detectMainLanguage } from './utils/language-detector.js';
-
 class TranslationService {
   constructor(targetLang) {
     this.targetLang = targetLang;
@@ -42,19 +40,7 @@ class TranslationService {
     if (!text.trim()) return '';
 
     try {
-      // 首先进行本地语言检测
-      const localLang = detectMainLanguage(text);
-      
-      // 如果本地检测到目标语言，直接跳过翻译
-      if (localLang) {
-        const targetLangs = this.targetLangMap[this.targetLang] || [];
-        if (targetLangs.includes(localLang)) {
-          console.log(`Skipping translation based on local detection: ${localLang}`);
-          return '';
-        }
-      }
-
-      // 如果本地检测不确定，使用 Google API 进行检测和翻译
+      // 使用 Google API 进行检测和翻译
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${this.targetLang}&dt=t&dt=ld&q=${encodeURIComponent(text)}`;
       const response = await fetch(url);
       if (!response.ok) {
@@ -65,7 +51,7 @@ class TranslationService {
       // 获取 API 检测到的语言
       const detectedLang = data?.[2] || null;
       
-      // 再次检查 API 检测到的语言
+      // 跳过相同语言
       if (detectedLang && this.targetLangMap[this.targetLang]?.includes(detectedLang)) {
         console.log(`Skipping translation based on API detection: ${detectedLang}`);
         return '';

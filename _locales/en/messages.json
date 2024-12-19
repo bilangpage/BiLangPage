@@ -1,5 +1,11 @@
 {
-  "appName": "BiLangPage - Bilingual Web Experience",
-  "appShortName": "BiLangPage",
-  "appDesc": "Transform your browsing experience with seamless bilingual translations. Automatically displays translations alongside original text on Reddit, X (Twitter), and ProductHunt."
+  "appName": {
+    "message": "BiLangPage - Bilingual Web Experience"
+  },
+  "appShortName": {
+    "message": "BiLangPage"
+  },
+  "appDesc": {
+    "message": "Transform your browsing experience with seamless bilingual translations. Automatically displays translations alongside original text on Reddit, X (Twitter), and ProductHunt."
+  }
 }
