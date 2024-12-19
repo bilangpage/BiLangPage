@@ -19,23 +19,59 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
  */
 
+import { detectMainLanguage } from './utils/language-detector.js';
+
 class TranslationService {
   constructor(targetLang) {
     this.targetLang = targetLang;
+    // 目标语言到语言检测代码的映射
+    this.targetLangMap = {
+      'zh-CN': ['zh-CN', 'zh'],
+      'zh-TW': ['zh-TW', 'zh'],
+      'ja': ['ja'],
+      'ko': ['ko'],
+      'ar': ['ar'],
+      'en': ['en'],
+      'fr': ['fr'],
+      'de': ['de'],
+      'es': ['es']
+    };
   }
 
   async translate(text) {
     if (!text.trim()) return '';
 
     try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${this.targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+      // 首先进行本地语言检测
+      const localLang = detectMainLanguage(text);
+      
+      // 如果本地检测到目标语言，直接跳过翻译
+      if (localLang) {
+        const targetLangs = this.targetLangMap[this.targetLang] || [];
+        if (targetLangs.includes(localLang)) {
+          console.log(`Skipping translation based on local detection: ${localLang}`);
+          return '';
+        }
+      }
 
+      // 如果本地检测不确定，使用 Google API 进行检测和翻译
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${this.targetLang}&dt=t&dt=ld&q=${encodeURIComponent(text)}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
 
+      // 获取 API 检测到的语言
+      const detectedLang = data?.[2] || null;
+      
+      // 再次检查 API 检测到的语言
+      if (detectedLang && this.targetLangMap[this.targetLang]?.includes(detectedLang)) {
+        console.log(`Skipping translation based on API detection: ${detectedLang}`);
+        return '';
+      }
+
+      // 如果语言不匹配，使用翻译结果
       let translatedText = '';
       if (data && data[0]) {
         translatedText = data[0]
@@ -118,6 +154,10 @@ async function translateElements() {
           translatedTexts.add(originalText);
 
           const translatedText = await translator.translate(originalText);
+          if (translatedText == "") {
+            // 翻译失败或未翻译，跳过
+            continue;
+          }
 
           // 在插入翻译元素之前检查是否已经插入过了，通过这种方式来解决显示了重复翻译的问题
           // 检查是否已经存在相同的翻译元素
