@@ -50,7 +50,7 @@ class TranslationService {
 
       // 获取 API 检测到的语言
       const detectedLang = data?.[2] || null;
-      
+
       // 跳过相同语言
       if (detectedLang && this.targetLangMap[this.targetLang]?.includes(detectedLang)) {
         console.log(`Skipping translation based on API detection: ${detectedLang}`);
