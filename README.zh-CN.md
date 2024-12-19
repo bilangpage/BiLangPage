@@ -45,7 +45,7 @@ BiLangPage 是一个 Chrome 浏览器扩展，可以为流行网站提供即时�
 
 ## 安装
 
-1. 访问 [Chrome 网上应用店](#)（即将上线）
+1. 访问 [Chrome 网上应用店](https://chromewebstore.google.com/detail/bilangpage/ecglmijmieonanjgfojbcapmkgpahhil)
 2. 点击"添加到 Chrome"
 3. 在扩展弹窗中选择您偏好的语言和主题
 
