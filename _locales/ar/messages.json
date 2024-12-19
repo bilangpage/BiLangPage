@@ -1,0 +1,11 @@
+{
+  "appName": {
+    "message": "BiLangPage - تجربة ويب ثنائية اللغة"
+  },
+  "appShortName": {
+    "message": "BiLangPage"
+  },
+  "appDesc": {
+    "message": "حوّل تجربة التصفح الخاصة بك مع ترجمات ثنائية اللغة سلسة. يعرض تلقائياً الترجمات بجانب النص الأصلي على Reddit وX (Twitter) وProductHunt."
+  }
+} 

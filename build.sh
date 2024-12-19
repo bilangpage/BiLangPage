@@ -12,6 +12,7 @@ cp popup.js dist/
 cp background.js dist/
 cp content.js dist/
 cp -r src dist/
+cp -r _locales dist/
 
 # 创建 zip 文件
 cd dist
