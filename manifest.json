@@ -27,6 +27,8 @@
     "*://*.reddit.com/*",
     "*://*.x.com/*",
     "*://*.producthunt.com/*",
+    "*://*.quora.com/*",
+    "*://*.medium.com/*",
     "https://translate.googleapis.com/*"
   ],
   "content_scripts": [
@@ -34,7 +36,9 @@
       "matches": [
         "*://*.reddit.com/*",
         "*://*.x.com/*",
-        "*://*.producthunt.com/*"
+        "*://*.producthunt.com/*",
+        "*://*.quora.com/*",
+        "*://*.medium.com/*"
       ],
       "js": [
         "src/themes.js",
@@ -44,4 +48,4 @@
       "run_at": "document_idle"
     }
   ]
-} 
+}
