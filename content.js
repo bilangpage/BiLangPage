@@ -89,7 +89,12 @@ class TranslationService {
 }
 
 async function translateElements() {
-  const { targetLang, theme = 'dark' } = await chrome.storage.sync.get(['targetLang', 'theme']);
+  const { targetLang, theme = 'dark', enabled } = await chrome.storage.sync.get(['targetLang', 'theme', 'enabled']);
+  // 如果禁用了翻译，直接返回
+  if (enabled === false) {
+    return;
+  }
+
   if (!targetLang) {
     // 未找到目标语言设置，使用默认值：zh-CN
     await chrome.storage.sync.set({ targetLang: 'zh-CN' });
@@ -317,3 +322,21 @@ if (document.readyState === 'loading') {
   // 页面已加载，开始初始化翻译
   initialize();
 }
+
+// 监听来自 popup 的消息
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'toggleTranslation') {
+    if (!message.enabled) {
+      // 禁用翻译时，移除所有翻译
+      const translations = document.querySelectorAll('.bilingual-translation');
+      translations.forEach(el => el.remove());
+      
+      // 移除所有已翻译标记
+      const translatedElements = document.querySelectorAll('[data-translated]');
+      translatedElements.forEach(el => el.removeAttribute('data-translated'));
+    } else {
+      // 重新启用时，执行翻译
+      debouncedTranslate();
+    }
+  }
+});

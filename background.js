@@ -23,6 +23,7 @@ chrome.runtime.onInstalled.addListener(() => {
   // 设置默认值
   chrome.storage.sync.set({ 
     targetLang: 'zh-CN',
-    theme: 'dark'
+    theme: 'dark',
+    enabled: true
   });
 }); 

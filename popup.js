@@ -19,6 +19,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
  */
 
+// 启用/禁用切换处理
+document.getElementById('enableTranslation').addEventListener('change', async (event) => {
+  const enabled = event.target.checked;
+  await chrome.storage.sync.set({ enabled });
+  // 通知内容脚本更新状态
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (tabs[0]) {
+    chrome.tabs.sendMessage(tabs[0].id, { type: 'toggleTranslation', enabled });
+  }
+});
+
 // 语言切换处理
 document.getElementById('targetLang').addEventListener('change', async (event) => {
   const targetLang = event.target.value;
@@ -32,11 +43,13 @@ document.getElementById('theme').addEventListener('change', async (event) => {
 });
 
 // 初始化选中值
-chrome.storage.sync.get(['targetLang', 'theme'], (result) => {
+chrome.storage.sync.get(['targetLang', 'theme', 'enabled'], (result) => {
   if (result.targetLang) {
     document.getElementById('targetLang').value = result.targetLang;
   }
   if (result.theme) {
     document.getElementById('theme').value = result.theme;
   }
+  // 设置启用/禁用状态
+  document.getElementById('enableTranslation').checked = result.enabled !== false;
 }); 
