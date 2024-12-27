@@ -34,6 +34,19 @@ class TranslationService {
       'de': ['de'],
       'es': ['es']
     };
+
+    // 错误消息的多语言映射
+    this.errorMessages = {
+      'zh-CN': 'Google翻译接口今日被限制使用',
+      'zh-TW': 'Google翻譯接口今日被限制使用',
+      'ja': 'Google翻訳APIの今日の使用が制限されています',
+      'ko': 'Google 번역 API가 오늘 사용이 제한되었습니다',
+      'ar': 'واجهة برمجة ترجمة Google مقيدة اليوم',
+      'en': 'Google Translate API is restricted today',
+      'fr': "L'API Google Translate est restreinte aujourd'hui",
+      'de': 'Die Google Translate API ist heute eingeschränkt',
+      'es': 'La API de Google Translate está restringida hoy'
+    };
   }
 
   async translate(text) {
@@ -69,7 +82,8 @@ class TranslationService {
       return translatedText;
     } catch (error) {
       console.error('Translation error:', error);
-      return error.message;
+      // 返回对应语言的错误提示
+      return this.errorMessages[this.targetLang] || this.errorMessages['en'];
     }
   }
 }
