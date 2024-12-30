@@ -108,6 +108,15 @@
       font-size: 14px;
     }
 
+    .preview-label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      color: #888888;
+      font-size: 12px;
+      font-style: italic;
+    }
+
     .switch-wrapper {
       display: flex;
       align-items: center;
@@ -166,6 +175,7 @@
       padding: 12px;
       border-radius: 8px;
       transition: all 0.3s ease;
+      background-color: #ffffff !important;
     }
 
     .preview-content {
@@ -176,24 +186,29 @@
 
     .preview-original {
       font-size: 14px;
-      color: #ffffff;
+      color: #000000 !important;
+      padding: 4px;
     }
 
     .preview-translation {
       font-size: 14px;
       padding: 8px 12px;
       border-radius: 4px;
-      border-left: 3px solid;
       margin-left: 4px;
+      width: fit-content;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     /* Dark Theme Preview */
     .theme-preview-container.dark {
       background-color: #1a1a1a;
     }
+    .theme-preview-container.dark .preview-original {
+      color: #ffffff;
+    }
     .theme-preview-container.dark .preview-translation {
-      background-color: #2d2d2d;
-      border-left-color: #0079d3;
+      background-color: #1a1a1a;
       color: #ffffff;
     }
 
@@ -205,92 +220,105 @@
       color: #000000;
     }
     .theme-preview-container.light .preview-translation {
-      background-color: #f8f9fa;
-      border-left-color: #0079d3;
+      background-color: #ffffff;
       color: #000000;
     }
 
     /* Deep Blue Theme Preview */
-    .theme-preview-container.deep-blue {
-      background-color: #1a1a2e;
+    .theme-preview-container.deepBlue {
+      background-color: #1a365d;
     }
-    .theme-preview-container.deep-blue .preview-translation {
-      background-color: #16213e;
-      border-left-color: #4d7cff;
-      color: #e1e1e1;
+    .theme-preview-container.deepBlue .preview-original {
+      color: #ffffff;
+    }
+    .theme-preview-container.deepBlue .preview-translation {
+      background-color: #1a365d;
+      color: #ffffff;
     }
 
     /* Dark Gray & Orange Theme Preview */
     .theme-preview-container.darkGrayOrange {
-      background-color: #2c2c2c;
+      background-color: #2D3748;
+    }
+    .theme-preview-container.darkGrayOrange .preview-original {
+      color: #ED8936;
     }
     .theme-preview-container.darkGrayOrange .preview-translation {
-      background-color: #3d3d3d;
-      border-left-color: #ff6b01;
-      color: #e1e1e1;
+      background-color: #2D3748;
+      color: #ED8936;
     }
 
     /* Brown Yellow Theme Preview */
     .theme-preview-container.brownYellow {
-      background-color: #2c1810;
+      background-color: #744210;
+    }
+    .theme-preview-container.brownYellow .preview-original {
+      color: #F6E05E;
     }
     .theme-preview-container.brownYellow .preview-translation {
-      background-color: #3d2317;
-      border-left-color: #ffd700;
-      color: #e1e1e1;
+      background-color: #744210;
+      color: #F6E05E;
     }
 
     /* Almost Black & Sky Blue Theme Preview */
     .theme-preview-container.almostBlackSkyBlue {
-      background-color: #0a0a0a;
+      background-color: #1A202C;
+    }
+    .theme-preview-container.almostBlackSkyBlue .preview-original {
+      color: #63B3ED;
     }
     .theme-preview-container.almostBlackSkyBlue .preview-translation {
-      background-color: #1a1a1a;
-      border-left-color: #87ceeb;
-      color: #e1e1e1;
+      background-color: #1A202C;
+      color: #63B3ED;
     }
 
     /* Purple Yellow Theme Preview */
     .theme-preview-container.purpleYellow {
-      background-color: #2d1b3e;
+      background-color: #702459;
+    }
+    .theme-preview-container.purpleYellow .preview-original {
+      color: #FBBF24;
     }
     .theme-preview-container.purpleYellow .preview-translation {
-      background-color: #3d2654;
-      border-left-color: #ffd700;
-      color: #e1e1e1;
+      background-color: #702459;
+      color: #FBBF24;
     }
 
     /* Dark Green Light Green Theme Preview */
     .theme-preview-container.darkGreenLightGreen {
-      background-color: #1e3b2c;
+      background-color: #065F46;
+    }
+    .theme-preview-container.darkGreenLightGreen .preview-original {
+      color: #6EE7B7;
     }
     .theme-preview-container.darkGreenLightGreen .preview-translation {
-      background-color: #2a513d;
-      border-left-color: #90ee90;
-      color: #e1e1e1;
+      background-color: #065F46;
+      color: #6EE7B7;
     }
 
     /* Black Neon Green Theme Preview */
     .theme-preview-container.blackNeonGreen {
-      background-color: #000000;
+      background-color: #131516;
+    }
+    .theme-preview-container.blackNeonGreen .preview-original {
+      color: #70e000;
     }
     .theme-preview-container.blackNeonGreen .preview-translation {
-      background-color: #1a1a1a;
-      border-left-color: #39ff14;
-      color: #e1e1e1;
+      background-color: #131516;
+      color: #70e000;
     }
 
     /* Mystic Black Slate Blue Theme Preview */
     .theme-preview-container.mysticBlackSlateBlue {
-      background-color: #0f0f1a;
+      background-color: #000000;
+    }
+    .theme-preview-container.mysticBlackSlateBlue .preview-original {
+      color: #6A5ACD;
     }
     .theme-preview-container.mysticBlackSlateBlue .preview-translation {
-      background-color: #1a1a2d;
-      border-left-color: #6a5acd;
-      color: #e1e1e1;
+      background-color: #000000;
+      color: #6A5ACD;
     }
-
-    /* ... 其他主题预览样式 ... */
   </style>
 </head>
 <body>
@@ -298,7 +326,7 @@
     <h1 class="title">BiLangPage</h1>
     
     <div class="switch-wrapper">
-      <label class="settings-label">Enable Translation</label>
+      <label class="settings-label" id="enableTranslationLabel">Enable Translation</label>
       <label class="switch">
         <input type="checkbox" id="enableTranslation" checked>
         <span class="slider"></span>
@@ -306,7 +334,7 @@
     </div>
 
     <div class="settings-group">
-      <label class="settings-label">Target Language</label>
+      <label class="settings-label" id="targetLanguageLabel">Target Language</label>
       <div class="select-wrapper">
         <select id="targetLang">
           <option value="zh-CN">简体中文</option>
@@ -322,7 +350,7 @@
     </div>
 
     <div class="settings-group">
-      <label class="settings-label">Theme Style</label>
+      <label class="settings-label" id="themeStyleLabel">Theme Style</label>
       <div class="select-wrapper theme-select">
         <select id="theme">
           <option value="dark">Dark</option>
@@ -337,16 +365,13 @@
           <option value="mysticBlackSlateBlue">Mystic Black & Slate Blue</option>
         </select>
       </div>
+      <div class="preview-label" id="previewLabel">Theme Preview</div>
       <div id="themePreview" class="theme-preview-container">
         <div class="preview-content">
           <div class="preview-original">Original Text</div>
           <div class="preview-translation">Translation Text</div>
         </div>
       </div>
-    </div>
-
-    <div class="footer">
-      Customize display settings
     </div>
   </div>
   <script src="popup.js"></script>
