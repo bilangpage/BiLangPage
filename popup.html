@@ -160,6 +160,137 @@
     input:checked + .slider:before {
       transform: translateX(24px);
     }
+
+    .theme-preview-container {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .preview-content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .preview-original {
+      font-size: 14px;
+      color: #ffffff;
+    }
+
+    .preview-translation {
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border-left: 3px solid;
+      margin-left: 4px;
+    }
+
+    /* Dark Theme Preview */
+    .theme-preview-container.dark {
+      background-color: #1a1a1a;
+    }
+    .theme-preview-container.dark .preview-translation {
+      background-color: #2d2d2d;
+      border-left-color: #0079d3;
+      color: #ffffff;
+    }
+
+    /* Light Theme Preview */
+    .theme-preview-container.light {
+      background-color: #ffffff;
+    }
+    .theme-preview-container.light .preview-original {
+      color: #000000;
+    }
+    .theme-preview-container.light .preview-translation {
+      background-color: #f8f9fa;
+      border-left-color: #0079d3;
+      color: #000000;
+    }
+
+    /* Deep Blue Theme Preview */
+    .theme-preview-container.deep-blue {
+      background-color: #1a1a2e;
+    }
+    .theme-preview-container.deep-blue .preview-translation {
+      background-color: #16213e;
+      border-left-color: #4d7cff;
+      color: #e1e1e1;
+    }
+
+    /* Dark Gray & Orange Theme Preview */
+    .theme-preview-container.darkGrayOrange {
+      background-color: #2c2c2c;
+    }
+    .theme-preview-container.darkGrayOrange .preview-translation {
+      background-color: #3d3d3d;
+      border-left-color: #ff6b01;
+      color: #e1e1e1;
+    }
+
+    /* Brown Yellow Theme Preview */
+    .theme-preview-container.brownYellow {
+      background-color: #2c1810;
+    }
+    .theme-preview-container.brownYellow .preview-translation {
+      background-color: #3d2317;
+      border-left-color: #ffd700;
+      color: #e1e1e1;
+    }
+
+    /* Almost Black & Sky Blue Theme Preview */
+    .theme-preview-container.almostBlackSkyBlue {
+      background-color: #0a0a0a;
+    }
+    .theme-preview-container.almostBlackSkyBlue .preview-translation {
+      background-color: #1a1a1a;
+      border-left-color: #87ceeb;
+      color: #e1e1e1;
+    }
+
+    /* Purple Yellow Theme Preview */
+    .theme-preview-container.purpleYellow {
+      background-color: #2d1b3e;
+    }
+    .theme-preview-container.purpleYellow .preview-translation {
+      background-color: #3d2654;
+      border-left-color: #ffd700;
+      color: #e1e1e1;
+    }
+
+    /* Dark Green Light Green Theme Preview */
+    .theme-preview-container.darkGreenLightGreen {
+      background-color: #1e3b2c;
+    }
+    .theme-preview-container.darkGreenLightGreen .preview-translation {
+      background-color: #2a513d;
+      border-left-color: #90ee90;
+      color: #e1e1e1;
+    }
+
+    /* Black Neon Green Theme Preview */
+    .theme-preview-container.blackNeonGreen {
+      background-color: #000000;
+    }
+    .theme-preview-container.blackNeonGreen .preview-translation {
+      background-color: #1a1a1a;
+      border-left-color: #39ff14;
+      color: #e1e1e1;
+    }
+
+    /* Mystic Black Slate Blue Theme Preview */
+    .theme-preview-container.mysticBlackSlateBlue {
+      background-color: #0f0f1a;
+    }
+    .theme-preview-container.mysticBlackSlateBlue .preview-translation {
+      background-color: #1a1a2d;
+      border-left-color: #6a5acd;
+      color: #e1e1e1;
+    }
+
+    /* ... 其他主题预览样式 ... */
   </style>
 </head>
 <body>
@@ -192,7 +323,7 @@
 
     <div class="settings-group">
       <label class="settings-label">Theme Style</label>
-      <div class="select-wrapper">
+      <div class="select-wrapper theme-select">
         <select id="theme">
           <option value="dark">Dark</option>
           <option value="light">Light</option>
@@ -205,6 +336,12 @@
           <option value="blackNeonGreen">Black & Neon Green</option>
           <option value="mysticBlackSlateBlue">Mystic Black & Slate Blue</option>
         </select>
+      </div>
+      <div id="themePreview" class="theme-preview-container">
+        <div class="preview-content">
+          <div class="preview-original">Original Text</div>
+          <div class="preview-translation">Translation Text</div>
+        </div>
       </div>
     </div>
 

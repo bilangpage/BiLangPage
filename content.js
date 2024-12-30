@@ -164,13 +164,26 @@ async function translateElements() {
             continue;
           }
 
-          // 在插入翻译元素之前检查是否已经插入过了，通过这种方式来解决显示了重复翻译的问题
-          // 检查是否已经存在相同的翻译元素
-          const nextElement = element.nextElementSibling;
-          if (nextElement?.classList?.contains('bilingual-translation') &&
-            nextElement.getAttribute('data-original-text') === originalText) {
-            // 跳过已存在的翻译元素
-            continue;
+          // 检查是否是 Reddit 的特定标题元素
+          const isRedditTitle = window.location.hostname.includes('reddit.com') && 
+            (element.matches('shreddit-post a[slot="title"]') || element.matches('h1[slot="title"]'));
+
+          // 在插入翻译元素之前检查是否已经插入过了
+          if (isRedditTitle) {
+            // 对于 Reddit 标题，检查内部的翻译元素
+            const existingTranslation = element.querySelector('.bilingual-translation');
+            if (existingTranslation?.getAttribute('data-original-text') === originalText) {
+              // 跳过已存在的翻译元素
+              continue;
+            }
+          } else {
+            // 对于其他元素，检查下一个兄弟元素
+            const nextElement = element.nextElementSibling;
+            if (nextElement?.classList?.contains('bilingual-translation') &&
+              nextElement.getAttribute('data-original-text') === originalText) {
+              // 跳过已存在的翻译元素
+              continue;
+            }
           }
 
           // 创建新的翻译元素
@@ -178,32 +191,67 @@ async function translateElements() {
           translationElement.className = 'bilingual-translation';
           translationElement.textContent = translatedText;
           translationElement.setAttribute('data-original-text', originalText);
-          translationElement.style.cssText = `
-            display: block !important;
-            visibility: visible !important;
-            margin-top: 8px !important;
-            padding: 8px 12px !important;
-            border-left: 3px solid ${currentTheme.styles.borderLeftColor} !important;
-            color: ${currentTheme.styles.color} !important;
-            font-size: 14px !important;
-            line-height: 1.4 !important;
-            opacity: 1 !important;
-            height: auto !important;
-            overflow: visible !important;
-            position: relative !important;
-            z-index: 1 !important;
-            background-color: ${currentTheme.styles.backgroundColor} !important;
-            margin-left: 4px !important;
-            pointer-events: none !important;
-            clear: both !important;
-            width: fit-content !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-            border-radius: 4px !important;
-          `;
 
-          // 将翻译元素插入到原文后面
-          element.parentNode.insertBefore(translationElement, element.nextSibling);
+          if (isRedditTitle) {
+            // Reddit 标题：将翻译插入标签内部
+            translationElement.style.cssText = `
+              display: block !important;
+              visibility: visible !important;
+              margin-top: 8px !important;
+              padding: 8px 12px !important;
+              border-left: 3px solid ${currentTheme.styles.borderLeftColor} !important;
+              color: ${currentTheme.styles.color} !important;
+              font-size: 14px !important;
+              line-height: 1.4 !important;
+              opacity: 1 !important;
+              height: auto !important;
+              overflow: visible !important;
+              position: relative !important;
+              z-index: 1 !important;
+              background-color: ${currentTheme.styles.backgroundColor} !important;
+              margin-left: 4px !important;
+              pointer-events: none !important;
+              clear: both !important;
+              width: fit-content !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
+              border-radius: 4px !important;
+            `;
+
+            // 查找 faceplate-perfmark 标签作为插入点
+            const faceplateElement = element.querySelector('faceplate-perfmark');
+            if (faceplateElement) {
+              element.insertBefore(translationElement, faceplateElement);
+            } else {
+              element.appendChild(translationElement);
+            }
+          } else {
+            // 其他元素：保持原有的同级插入方式
+            translationElement.style.cssText = `
+              display: block !important;
+              visibility: visible !important;
+              margin-top: 8px !important;
+              padding: 8px 12px !important;
+              border-left: 3px solid ${currentTheme.styles.borderLeftColor} !important;
+              color: ${currentTheme.styles.color} !important;
+              font-size: 14px !important;
+              line-height: 1.4 !important;
+              opacity: 1 !important;
+              height: auto !important;
+              overflow: visible !important;
+              position: relative !important;
+              z-index: 1 !important;
+              background-color: ${currentTheme.styles.backgroundColor} !important;
+              margin-left: 4px !important;
+              pointer-events: none !important;
+              clear: both !important;
+              width: fit-content !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
+              border-radius: 4px !important;
+            `;
+            element.parentNode.insertBefore(translationElement, element.nextSibling);
+          }
 
           // 标记原始元素已翻译
           element.setAttribute('data-translated', 'true');

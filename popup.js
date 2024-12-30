@@ -36,10 +36,20 @@ document.getElementById('targetLang').addEventListener('change', async (event) =
   await chrome.storage.sync.set({ targetLang });
 });
 
+// 更新主题预览
+function updateThemePreview(theme) {
+  const previewContainer = document.getElementById('themePreview');
+  // 移除所有主题类
+  previewContainer.className = 'theme-preview-container';
+  // 添加新主题类
+  previewContainer.classList.add(theme);
+}
+
 // 主题切换处理
 document.getElementById('theme').addEventListener('change', async (event) => {
   const theme = event.target.value;
   await chrome.storage.sync.set({ theme });
+  updateThemePreview(theme);
 });
 
 // 初始化选中值
@@ -49,6 +59,10 @@ chrome.storage.sync.get(['targetLang', 'theme', 'enabled'], (result) => {
   }
   if (result.theme) {
     document.getElementById('theme').value = result.theme;
+    updateThemePreview(result.theme);
+  } else {
+    // 默认主题
+    updateThemePreview('dark');
   }
   // 设置启用/禁用状态
   document.getElementById('enableTranslation').checked = result.enabled !== false;

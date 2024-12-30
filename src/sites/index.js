@@ -26,19 +26,12 @@ const siteAdapters = {
     name: 'Reddit',
     selectors: [
       {
-        type: 'feed',
-        // 注意：当前实现仅支持两层选择器，例如: "parent child"
-        // 如需更深层的选择器，请使用 CSS 选择器字符串，例如：
-        // "shreddit-feed > div > faceplate-screen-reader-content"
-        elements: [
-          'shreddit-feed faceplate-screen-reader-content'  // 两层选择器示例
-        ]
-      },
-      {
         type: 'post',
         elements: [
-          'shreddit-post h1',
-          'shreddit-post p'
+          'shreddit-post a[slot="title"]',
+          'shreddit-post h1[slot="title"]',
+          'shreddit-post div[slot="text-body"] p',
+          'shreddit-post a[slot="text-body"] p'
         ]
       },
       {
@@ -59,9 +52,8 @@ const siteAdapters = {
     selectors: [
       {
         type: 'tweet',
-        // 对于复杂的选择器，建议使用标准的 CSS 选择器语法
         elements: [
-          'article[data-testid="tweet"] div[lang] span',  // CSS 选择器示例
+          'article[data-testid="tweet"] div[lang] span', 
         ]
       }
     ]
