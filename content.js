@@ -144,6 +144,7 @@ async function translateElements() {
 
   for (const element of elements) {
     try {
+      // 跳过已翻译的元素
       if (!element.hasAttribute('data-translated') &&
         !element.nextElementSibling?.classList?.contains('bilingual-translation')) {
         const originalText = currentSite.processElement
@@ -191,10 +192,7 @@ async function translateElements() {
           translationElement.className = 'bilingual-translation';
           translationElement.textContent = translatedText;
           translationElement.setAttribute('data-original-text', originalText);
-
-          if (isRedditTitle) {
-            // Reddit 标题：将翻译插入标签内部
-            translationElement.style.cssText = `
+          translationElement.style.cssText = `
               display: block !important;
               visibility: visible !important;
               margin-top: 8px !important;
@@ -218,6 +216,8 @@ async function translateElements() {
               border-radius: 4px !important;
             `;
 
+          if (isRedditTitle) {
+            // Reddit 标题：将翻译插入标签内部
             // 查找 faceplate-perfmark 标签作为插入点
             const faceplateElement = element.querySelector('faceplate-perfmark');
             if (faceplateElement) {
@@ -227,37 +227,12 @@ async function translateElements() {
             }
           } else {
             // 其他元素：保持原有的同级插入方式
-            translationElement.style.cssText = `
-              display: block !important;
-              visibility: visible !important;
-              margin-top: 8px !important;
-              padding: 8px 12px !important;
-              border-left: 3px solid ${currentTheme.styles.borderLeftColor} !important;
-              color: ${currentTheme.styles.color} !important;
-              font-size: 14px !important;
-              line-height: 1.4 !important;
-              opacity: 1 !important;
-              height: auto !important;
-              overflow: visible !important;
-              position: relative !important;
-              z-index: 1 !important;
-              background-color: ${currentTheme.styles.backgroundColor} !important;
-              margin-left: 4px !important;
-              pointer-events: none !important;
-              clear: both !important;
-              width: fit-content !important;
-              max-width: 100% !important;
-              box-sizing: border-box !important;
-              border-radius: 4px !important;
-            `;
             element.parentNode.insertBefore(translationElement, element.nextSibling);
           }
 
           // 标记原始元素已翻译
           element.setAttribute('data-translated', 'true');
         }
-      } else {
-        // 跳过已翻译的元素
       }
     } catch (error) {
       console.error(`处理元素时出错: ${error.message}`);
