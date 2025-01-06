@@ -19,26 +19,51 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
  */
 
-// 启用/禁用切换处理
-document.getElementById('enableTranslation').addEventListener('change', async (event) => {
-  const enabled = event.target.checked;
-  await chrome.storage.sync.set({ enabled });
-  // 通知内容脚本更新状态
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tabs[0]) {
-    chrome.tabs.sendMessage(tabs[0].id, { type: 'toggleTranslation', enabled });
+// 创建一个函数来同时处理存储和消息发送
+async function updateSetting(key, value) {
+  try {
+    // 1. 更新存储
+    await chrome.storage.sync.set({ [key]: value });
+    
+    // 2. 尝试发送消息（作为备用方案）
+    try {
+      const tabs = await chrome.tabs.query({});
+      for (const tab of tabs) {
+        chrome.tabs.sendMessage(tab.id, { 
+          type: key === 'enabled' ? 'toggleTranslation' : 
+                key === 'selectionEnabled' ? 'toggleSelection' :
+                key === 'targetLang' ? 'updateTargetLang' :
+                key === 'theme' ? 'updateTheme' : 'updateSetting',
+          [key]: value 
+        }).catch(() => {
+          // 忽略消息发送失败
+        });
+      }
+    } catch (e) {
+      // 忽略消息发送错误
+      console.log('Message sending failed, falling back to polling:', e);
+    }
+  } catch (error) {
+    console.error('Failed to update setting:', error);
   }
+}
+
+// 修改事件监听器
+document.getElementById('enableTranslation').addEventListener('change', (event) => {
+  updateSetting('enabled', event.target.checked);
 });
 
-// 启用/禁用划词翻译处理
-document.getElementById('enableSelection').addEventListener('change', async (event) => {
-  const enabled = event.target.checked;
-  await chrome.storage.sync.set({ selectionEnabled: enabled });
-  // 通知内容脚本更新状态
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tabs[0]) {
-    chrome.tabs.sendMessage(tabs[0].id, { type: 'toggleSelection', enabled });
-  }
+document.getElementById('enableSelection').addEventListener('change', (event) => {
+  updateSetting('selectionEnabled', event.target.checked);
+});
+
+document.getElementById('targetLang').addEventListener('change', (event) => {
+  updateSetting('targetLang', event.target.value);
+  updateUILanguage(event.target.value);
+});
+
+document.getElementById('theme').addEventListener('change', (event) => {
+  updateSetting('theme', event.target.value);
 });
 
 // 更新界面文本语言
@@ -98,20 +123,6 @@ function updateUILanguage(targetLang) {
     }
   }
 }
-
-// 语言切换处理
-document.getElementById('targetLang').addEventListener('change', async (event) => {
-  const targetLang = event.target.value;
-  await chrome.storage.sync.set({ targetLang });
-  // 更新界面语言
-  updateUILanguage(targetLang);
-});
-
-// 主题切换处理
-document.getElementById('theme').addEventListener('change', async (event) => {
-  const theme = event.target.value;
-  await chrome.storage.sync.set({ theme });
-});
 
 // 初始化界面状态
 document.addEventListener('DOMContentLoaded', async () => {

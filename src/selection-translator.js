@@ -26,6 +26,8 @@ class SelectionTranslator {
     this.selectedText = '';
     this.selectionEnabled = false;
     this.selectionTimeout = null;
+    this.lastSettings = {};
+    this.isProcessingChange = false;
     
     // 创建 UI 元素
     this.createUI();
@@ -35,6 +37,8 @@ class SelectionTranslator {
     this.initializeState();
     // 初始化时设置默认主题的图标
     this.initializeIconStyle();
+    // 启动设置轮询
+    this.startSettingsPolling();
   }
 
   // 添加初始化图标样式的方法
@@ -83,25 +87,74 @@ class SelectionTranslator {
   }
 
   async initializeState() {
-    // 获取初始状态
-    const { selectionEnabled } = await chrome.storage.sync.get(['selectionEnabled']);
-    this.selectionEnabled = selectionEnabled === true;
+    try {
+      // 获取初始状态
+      const { selectionEnabled } = await chrome.storage.sync.get(['selectionEnabled']);
+      this.selectionEnabled = selectionEnabled === true;
+      return this.selectionEnabled;
+    } catch (error) {
+      console.error('初始化状态失败:', error);
+      return false;
+    }
+  }
 
-    // 监听状态变化
-    chrome.runtime.onMessage.addListener((message) => {
-      if (message.type === 'toggleSelection') {
-        this.selectionEnabled = message.enabled;
-        if (!this.selectionEnabled) {
-          this.hideUI();
+  async startSettingsPolling() {
+    setInterval(async () => {
+      if (this.isProcessingChange) {
+        return;
+      }
+
+      try {
+        const settings = await chrome.storage.sync.get(['selectionEnabled', 'theme']);
+        if (this.settingsChanged(settings)) {
+          this.isProcessingChange = true;
+          await this.handleSettingChange(settings);
+          this.lastSettings = settings;
+          this.isProcessingChange = false;
         }
+      } catch (error) {
+        console.error('Settings polling error:', error);
+        this.isProcessingChange = false;
       }
-    });
+    }, 3000);
+  }
 
-    // 监听主题变化
-    chrome.storage.onChanged.addListener((changes) => {
-      if (changes.theme) {
-        this.updateIconStyle(changes.theme.newValue);
+  async handleSettingChange(settings) {
+    // 处理划词翻译启用状态变化
+    if ('selectionEnabled' in settings && this.selectionEnabled !== settings.selectionEnabled) {
+      this.selectionEnabled = settings.selectionEnabled;
+      if (!this.selectionEnabled) {
+        this.hideUI();
       }
+    }
+
+    // 处理主题变化
+    if (settings.theme) {
+      this.updateIconStyle(settings.theme);
+    }
+  }
+
+  settingsChanged(newSettings) {
+    const oldKeys = Object.keys(this.lastSettings);
+    const newKeys = Object.keys(newSettings);
+    
+    if (oldKeys.length !== newKeys.length) {
+      return true;
+    }
+
+    return oldKeys.some(key => 
+      this.lastSettings[key] !== newSettings[key]
+    );
+  }
+
+  initializeMessageListener() {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (this.isProcessingChange) {
+        return true;
+      }
+      
+      this.handleSettingChange(message);
+      return true;
     });
   }
 
@@ -290,6 +343,20 @@ class SelectionTranslator {
     this.translateIcon.style.display = 'none';
     this.translatePopup.style.display = 'none';
     this.selectedText = '';
+  }
+
+  destroy() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+    // 移除 UI 元素
+    if (this.translateIcon) {
+      this.translateIcon.remove();
+    }
+    if (this.translatePopup) {
+      this.translatePopup.remove();
+    }
   }
 }
 

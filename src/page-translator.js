@@ -25,11 +25,89 @@ class PageTranslator {
     this.themes = themes;
     this.translatedTexts = new Set();
     this.observer = null;
-    this.enabled = false;  // 默认禁用，等待初始化
-    
-    // 绑定方法到实例
+    this.enabled = false;
+    this.lastSettings = {};
+    this.isProcessingChange = false; // 添加处理锁
+
+    // 绑定方法
     this.translateElements = this.translateElements.bind(this);
     this.debouncedTranslate = this.debounce(this.translateElements, 200);
+    
+    // 初始化消息监听和轮询
+    this.initializeMessageListener();
+    this.startSettingsPolling();
+  }
+
+  initializeMessageListener() {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      // 如果正在处理轮询变化，跳过消息处理
+      if (this.isProcessingChange) {
+        return true;
+      }
+      
+      this.handleSettingChange(message);
+      return true;
+    });
+  }
+
+  async startSettingsPolling() {
+    setInterval(async () => {
+      if (this.isProcessingChange) {
+        return; // 如果正在处理变化，跳过本次轮询
+      }
+
+      try {
+        const settings = await chrome.storage.sync.get(['enabled', 'targetLang', 'theme']);
+        if (this.settingsChanged(settings)) {
+          this.isProcessingChange = true;
+          await this.handleSettingChange(settings);
+          this.lastSettings = settings;
+          this.isProcessingChange = false;
+        }
+      } catch (error) {
+        console.error('Settings polling error:', error);
+        this.isProcessingChange = false;
+      }
+    }, 1500);
+  }
+
+  async handleSettingChange(settings) {
+    // 处理启用状态变化
+    if ('enabled' in settings && this.enabled !== settings.enabled) {
+      this.enabled = settings.enabled;
+      if (!this.enabled) {
+        this.removeAllTranslations();
+      } else {
+        await this.debouncedTranslate();
+      }
+    }
+
+    // 处理目标语言变化
+    if (settings.targetLang && this.translationService.targetLang !== settings.targetLang) {
+      this.translationService.setTargetLang(settings.targetLang);
+      if (this.enabled) {
+        this.removeAllTranslations();
+        await this.debouncedTranslate();
+      }
+    }
+
+    // 处理主题变化
+    if (settings.theme) {
+      this.updateTranslationsStyle(settings.theme);
+    }
+  }
+
+  settingsChanged(newSettings) {
+    const oldKeys = Object.keys(this.lastSettings);
+    const newKeys = Object.keys(newSettings);
+    
+    if (oldKeys.length !== newKeys.length) {
+      return true;
+    }
+
+    return oldKeys.some(key => 
+      this.lastSettings[key] !== newSettings[key]
+    );
   }
 
   async initializeState() {
@@ -42,35 +120,6 @@ class PageTranslator {
       if (targetLang) {
         this.translationService.setTargetLang(targetLang);
       }
-
-      // 监听存储变化
-      chrome.storage.onChanged.addListener((changes) => {
-        // 处理语言变化
-        if (changes.targetLang) {
-          console.log(`Language setting changed: ${changes.targetLang.oldValue} -> ${changes.targetLang.newValue}`);
-          this.translationService.setTargetLang(changes.targetLang.newValue);
-          // 语言改变时需要重新翻译
-          if (this.enabled) {
-            this.removeAllTranslations();
-            this.debouncedTranslate();
-          }
-        }
-
-        // 处理启用状态变化
-        if (changes.enabled !== undefined) {
-          this.enabled = changes.enabled.newValue;
-          if (!this.enabled) {
-            this.removeAllTranslations();
-          } else {
-            this.debouncedTranslate();
-          }
-        }
-
-        // 主题改变时只更新样式
-        if (changes.theme && this.enabled) {
-          this.updateTranslationsStyle(changes.theme.newValue);
-        }
-      });
 
       return enabled;
     } catch (error) {
@@ -342,6 +391,10 @@ class PageTranslator {
     if (this.observer) {
       this.observer.disconnect();
       this.observer = null;
+    }
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
     }
     this.removeAllTranslations();
   }
