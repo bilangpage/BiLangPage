@@ -25,8 +25,9 @@
   <style>
     body {
       width: 300px;
+      margin: 0;
       padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       background-color: #1a1a1a;
       color: #ffffff;
     }
@@ -34,102 +35,50 @@
     .container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     .title {
+      margin: 0 0 8px 0;
       font-size: 18px;
       font-weight: 600;
-      margin: 0;
       color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .select-wrapper {
-      position: relative;
-      width: 100%;
-    }
-
-    .select-wrapper::after {
-      content: "▼";
-      font-size: 12px;
-      color: #ffffff;
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-
-    select {
-      width: 100%;
-      padding: 8px 12px;
-      font-size: 14px;
-      border: 2px solid #4a4a4a;
+    .logo {
+      width: 24px;
+      height: 24px;
       border-radius: 6px;
-      background-color: #2d2d2d;
-      color: #ffffff;
-      appearance: none;
-      cursor: pointer;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    select:hover {
-      border-color: #666666;
-      background-color: #333333;
-    }
-
-    select:focus {
-      border-color: #0079d3;
-      box-shadow: 0 0 0 2px rgba(0, 121, 211, 0.2);
-    }
-
-    option {
-      background-color: #2d2d2d;
-      color: #ffffff;
-      padding: 8px;
-    }
-
-    .footer {
-      margin-top: 16px;
-      font-size: 12px;
-      color: #888888;
-      text-align: center;
     }
 
     .settings-group {
-      margin-bottom: 16px;
-    }
-    
-    .settings-label {
-      display: block;
-      margin-bottom: 8px;
-      color: #888888;
-      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .preview-label {
-      display: block;
-      margin-top: 12px;
-      margin-bottom: 4px;
-      color: #888888;
-      font-size: 12px;
-      font-style: italic;
+    .settings-label {
+      font-size: 14px;
+      color: #ffffff;
+      margin-bottom: 0;
     }
 
     .switch-wrapper {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
-      padding: 8px 0;
+      margin-bottom: 4px;
     }
 
+    /* Switch 样式 */
     .switch {
       position: relative;
       display: inline-block;
-      width: 48px;
-      height: 24px;
+      width: 40px;
+      height: 20px;
     }
 
     .switch input {
@@ -145,35 +94,71 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #4a4a4a;
+      background-color: #ccc;
       transition: .4s;
-      border-radius: 24px;
+      border-radius: 20px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
       background-color: white;
       transition: .4s;
       border-radius: 50%;
     }
 
     input:checked + .slider {
-      background-color: #0079d3;
+      background-color: #2196F3;
     }
 
     input:checked + .slider:before {
-      transform: translateX(24px);
+      transform: translateX(20px);
+    }
+
+    /* Select 样式 */
+    .select-wrapper {
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .select-wrapper select {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 14px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background-color: #2d2d2d;
+      color: #ffffff;
+      cursor: pointer;
+      appearance: none;
+    }
+
+    .select-wrapper::after {
+      content: "▼";
+      font-size: 12px;
+      color: #ffffff;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    /* 主题预览样式 */
+    .preview-label {
+      font-size: 11px;
+      color: #888888;
+      margin: 2px 0;
     }
 
     .theme-preview-container {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 8px;
+      border-radius: 6px;
+      padding: 6px;
+      margin-top: 2px;
       transition: all 0.3s ease;
       background-color: #ffffff !important;
     }
@@ -181,23 +166,23 @@
     .preview-content {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 2px;
     }
 
     .preview-original {
-      font-size: 14px;
+      font-size: 12px;
+      padding: 2px;
       color: #000000 !important;
-      padding: 4px;
     }
 
     .preview-translation {
-      font-size: 14px;
-      padding: 8px 12px;
-      border-radius: 4px;
-      margin-left: 4px;
+      font-size: 12px;
+      padding: 2px;
+      margin-left: 8px;
       width: fit-content;
-      max-width: 100%;
+      max-width: calc(100% - 8px);
       box-sizing: border-box;
+      border-radius: 4px;
     }
 
     /* Dark Theme Preview */
@@ -323,12 +308,23 @@
 </head>
 <body>
   <div class="container">
-    <h1 class="title">BiLangPage</h1>
+    <h1 class="title">
+      <img src="icons/icon48.png" alt="BiLangPage Logo" class="logo">
+      BiLangPage
+    </h1>
     
     <div class="switch-wrapper">
       <label class="settings-label" id="enableTranslationLabel">Enable Translation</label>
       <label class="switch">
         <input type="checkbox" id="enableTranslation" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="switch-wrapper">
+      <label class="settings-label" id="enableSelectionLabel">Enable Selection Translation</label>
+      <label class="switch">
+        <input type="checkbox" id="enableSelection">
         <span class="slider"></span>
       </label>
     </div>

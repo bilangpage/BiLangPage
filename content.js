@@ -286,6 +286,269 @@ function initialize() {
     return;
   }
 
+  // 创建翻译图标元素
+  const translateIcon = document.createElement('div');
+  translateIcon.className = 'bilingual-translate-icon';
+  translateIcon.style.cssText = `
+    position: absolute;
+    display: none;
+    width: 24px;
+    height: 24px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 999999;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230079d3"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>');
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.2s ease;
+  `;
+  translateIcon.addEventListener('mouseenter', () => {
+    translateIcon.style.transform = 'scale(1.1)';
+  });
+  translateIcon.addEventListener('mouseleave', () => {
+    translateIcon.style.transform = 'scale(1)';
+  });
+  document.body.appendChild(translateIcon);
+
+  // 创建翻译弹窗元素
+  const translatePopup = document.createElement('div');
+  translatePopup.className = 'bilingual-translate-popup';
+  translatePopup.style.cssText = `
+    position: absolute;
+    display: none;
+    max-width: 300px;
+    padding: 12px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 999999;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #000000;
+  `;
+  document.body.appendChild(translatePopup);
+
+  // 检查选中文本是否在译文中
+  function isSelectionInTranslation(selection) {
+    if (!selection.rangeCount) return false;
+    
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    
+    // 检查选中的文本节点
+    if (container.nodeType === Node.TEXT_NODE) {
+      return isElementTranslation(container.parentElement);
+    }
+    
+    // 检查选中的元素节点
+    return isElementTranslation(container);
+  }
+
+  // 检查元素是否是译文
+  function isElementTranslation(element) {
+    if (!element) return false;
+    return (
+      element.classList?.contains('bilingual-translation') ||
+      element.classList?.contains('bilingual-translate-popup') ||
+      element.closest('.bilingual-translation') !== null ||
+      element.closest('.bilingual-translate-popup') !== null
+    );
+  }
+
+  // 计算翻译图标位置
+  function updateTranslateIconPosition(range) {
+    const rect = range.getBoundingClientRect();
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+    // 设置图标位置
+    translateIcon.style.left = `${rect.right + scrollX + 10}px`;
+    translateIcon.style.top = `${rect.top + scrollY}px`;
+    translateIcon.style.display = 'block';
+
+    // 如果弹窗已显示，同时更新弹窗位置
+    if (translatePopup.style.display === 'block') {
+      translatePopup.style.left = `${translateIcon.offsetLeft + 30}px`;
+      translatePopup.style.top = `${translateIcon.offsetTop}px`;
+    }
+  }
+
+  // 处理选中文本
+  let selectedText = '';
+  let selectionTimeout;
+  let selectionEnabled = false;  // 默认禁用划词翻译
+
+  // 初始化划词翻译状态
+  chrome.storage.sync.get(['selectionEnabled'], (result) => {
+    selectionEnabled = result.selectionEnabled === true;
+  });
+
+  // 监听划词翻译开关消息
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'toggleSelection') {
+      selectionEnabled = message.enabled;
+      if (!selectionEnabled) {
+        // 关闭划词翻译时，隐藏图标和弹窗
+        translateIcon.style.display = 'none';
+        translatePopup.style.display = 'none';
+        selectedText = '';
+      }
+    }
+  });
+
+  // 处理双击事件
+  document.addEventListener('dblclick', (e) => {
+    if (!selectionEnabled) return;  // 如果禁用了划词翻译，直接返回
+
+    const selection = window.getSelection();
+    const text = selection.toString().trim();
+    
+    // 如果选中的是译文，不显示翻译按钮
+    if (!text || isSelectionInTranslation(selection)) {
+      return;
+    }
+
+    selectedText = text;
+    const range = selection.getRangeAt(0);
+    updateTranslateIconPosition(range);
+  });
+
+  // 处理选择文本事件
+  document.addEventListener('mouseup', (e) => {
+    if (!selectionEnabled) return;  // 如果禁用了划词翻译，直接返回
+
+    // 清除之前的定时器
+    if (selectionTimeout) {
+      clearTimeout(selectionTimeout);
+    }
+
+    // 设置新的定时器，延迟 200ms 处理选择
+    selectionTimeout = setTimeout(() => {
+      const selection = window.getSelection();
+      const text = selection.toString().trim();
+
+      // 如果选中的是译文，不显示翻译按钮
+      if (!text || isSelectionInTranslation(selection)) {
+        return;
+      }
+
+      if (text && text !== selectedText && !translatePopup.contains(e.target)) {
+        selectedText = text;
+        const range = selection.getRangeAt(0);
+        updateTranslateIconPosition(range);
+      } else if (!text) {
+        // 如果没有选中文本，并且点击不在弹窗内，则隐藏图标和弹窗
+        if (!translatePopup.contains(e.target) && !translateIcon.contains(e.target)) {
+          translateIcon.style.display = 'none';
+          translatePopup.style.display = 'none';
+          selectedText = '';
+        }
+      }
+    }, 200);
+  });
+
+  // 更新翻译图标样式
+  function updateTranslateIconStyle(theme = 'dark') {
+    const currentTheme = themes[theme] || themes.dark;
+    translateIcon.style.backgroundColor = currentTheme.styles.backgroundColor;
+    translateIcon.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.2)';
+    
+    // 更新 SVG 图标颜色
+    const iconColor = currentTheme.styles.color.replace('#', '%23');
+    translateIcon.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${iconColor}"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>')`;
+  }
+
+  // 初始化翻译图标样式
+  chrome.storage.sync.get(['theme'], (result) => {
+    updateTranslateIconStyle(result.theme);
+  });
+
+  // 监听主题变化
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.theme) {
+      updateTranslateIconStyle(changes.theme.newValue);
+    }
+  });
+
+  // 点击翻译图标
+  translateIcon.addEventListener('click', async () => {
+    if (!selectedText) return;
+
+    const { targetLang, theme = 'dark' } = await chrome.storage.sync.get(['targetLang', 'theme']);
+    const translator = new TranslationService(targetLang || 'zh-CN');
+    const currentTheme = themes[theme] || themes.dark;
+
+    // 更新图标样式
+    updateTranslateIconStyle(theme);
+
+    // 显示加载状态
+    translatePopup.textContent = '翻译中...';
+    translatePopup.style.display = 'block';
+    translatePopup.style.left = `${translateIcon.offsetLeft + 30}px`;
+    translatePopup.style.top = `${translateIcon.offsetTop}px`;
+
+    try {
+      const translatedText = await translator.translate(selectedText);
+      if (translatedText) {
+        // 更新弹窗样式和内容
+        translatePopup.style.cssText = `
+          position: absolute;
+          display: block;
+          max-width: 300px;
+          padding: 16px;
+          background-color: ${currentTheme.styles.backgroundColor};
+          color: ${currentTheme.styles.color};
+          border-radius: 12px;
+          box-shadow: 
+            0 12px 24px rgba(0, 0, 0, 0.4),
+            0 0 0 1px ${currentTheme.styles.borderLeftColor}66,
+            0 0 0 3px ${currentTheme.styles.backgroundColor},
+            0 0 0 4px ${currentTheme.styles.borderLeftColor}22;
+          z-index: 999999;
+          font-size: 14px;
+          line-height: 1.4;
+          left: ${translateIcon.offsetLeft + 30}px;
+          top: ${translateIcon.offsetTop}px;
+        `;
+        translatePopup.innerHTML = `
+          <div style="
+            margin-bottom: 12px; 
+            opacity: 0.6; 
+            font-size: 13px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid ${currentTheme.styles.borderLeftColor}22;
+          ">${selectedText}</div>
+          <div style="
+            border-left: 3px solid ${currentTheme.styles.borderLeftColor}; 
+            padding-left: 8px;
+          ">${translatedText}</div>
+        `;
+      }
+    } catch (error) {
+      translatePopup.textContent = '翻译失败，请稍后重试';
+    }
+  });
+
+  // 点击页面其他地方关闭弹窗
+  document.addEventListener('click', (e) => {
+    if (!translatePopup.contains(e.target) && !translateIcon.contains(e.target)) {
+      translateIcon.style.display = 'none';
+      translatePopup.style.display = 'none';
+      selectedText = '';
+    }
+  });
+
+  // 滚动时更新图标和弹窗位置
+  document.addEventListener('scroll', () => {
+    // 滚动时直接关闭图标和弹窗
+    translateIcon.style.display = 'none';
+    translatePopup.style.display = 'none';
+    selectedText = '';
+  });
+
   // 初始化观察器
   const observer = new MutationObserver((mutations) => {
     const currentSite = window.siteAdapters.getSiteAdapter(window.location.hostname);

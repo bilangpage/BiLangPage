@@ -30,6 +30,17 @@ document.getElementById('enableTranslation').addEventListener('change', async (e
   }
 });
 
+// 启用/禁用划词翻译处理
+document.getElementById('enableSelection').addEventListener('change', async (event) => {
+  const enabled = event.target.checked;
+  await chrome.storage.sync.set({ selectionEnabled: enabled });
+  // 通知内容脚本更新状态
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (tabs[0]) {
+    chrome.tabs.sendMessage(tabs[0].id, { type: 'toggleSelection', enabled });
+  }
+});
+
 // 更新界面文本语言
 function updateUILanguage(targetLang) {
   // 获取所有需要翻译的标签
@@ -44,6 +55,17 @@ function updateUILanguage(targetLang) {
       'de': 'Übersetzung aktivieren',
       'es': 'Activar traducción',
       'ar': 'تفعيل الترجمة'
+    },
+    'enableSelectionLabel': {
+      'zh-CN': '启用划词翻译',
+      'zh-TW': '啟用劃詞翻譯',
+      'en': 'Enable Selection Translation',
+      'ja': '選択翻訳を有効にする',
+      'ko': '선택 번역 활성화',
+      'fr': 'Activer la traduction de sélection',
+      'de': 'Textauswahl-Übersetzung aktivieren',
+      'es': 'Activar traducción de selección',
+      'ar': 'تفعيل ترجمة النص المحدد'
     },
     'targetLanguageLabel': {
       'zh-CN': '目标语言',
@@ -145,21 +167,27 @@ document.getElementById('theme').addEventListener('change', async (event) => {
   updateThemePreview(theme);
 });
 
-// 初始化选中值
-chrome.storage.sync.get(['targetLang', 'theme', 'enabled'], (result) => {
-  const targetLang = result.targetLang || 'zh-CN';
+// 初始化界面状态
+document.addEventListener('DOMContentLoaded', async () => {
+  const { enabled, selectionEnabled, targetLang, theme } = await chrome.storage.sync.get(['enabled', 'selectionEnabled', 'targetLang', 'theme']);
+  
+  // 设置开关状态
+  document.getElementById('enableTranslation').checked = enabled !== false;
+  document.getElementById('enableSelection').checked = selectionEnabled === true;
+  
+  // 设置语言选择
   if (targetLang) {
     document.getElementById('targetLang').value = targetLang;
-    // 初始化界面语言
-    updateUILanguage(targetLang);
   }
-  if (result.theme) {
-    document.getElementById('theme').value = result.theme;
-    updateThemePreview(result.theme);
-  } else {
-    // 默认主题
-    updateThemePreview('dark');
+  
+  // 设置主题选择
+  if (theme) {
+    document.getElementById('theme').value = theme;
   }
-  // 设置启用/禁用状态
-  document.getElementById('enableTranslation').checked = result.enabled !== false;
+  
+  // 更新界面语言
+  updateUILanguage(targetLang || 'zh-CN');
+  
+  // 更新主题预览
+  updateThemePreview(theme || 'dark');
 }); 
