@@ -4,6 +4,19 @@
  *
  * Copyright (C) 2024 BiLangPage
  * Author: wujiuye <wujiuye99@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
  */
 
 class SelectionTranslator {
@@ -20,40 +33,24 @@ class SelectionTranslator {
     this.initializeEventListeners();
     // 初始化状态
     this.initializeState();
+    // 初始化时设置默认主题的图标
+    this.initializeIconStyle();
+  }
+
+  // 添加初始化图标样式的方法
+  async initializeIconStyle() {
+    const { theme = 'dark' } = await chrome.storage.sync.get(['theme']);
+    this.updateIconStyle(theme);
   }
 
   createUI() {
     // 创建翻译图标
     this.translateIcon = document.createElement('div');
     this.translateIcon.className = 'bilingual-translate-icon';
-    this.translateIcon.style.cssText = `
-      position: absolute;
-      display: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      z-index: 999999;
-      background-size: 16px;
-      background-repeat: no-repeat;
-      background-position: center;
-      transition: transform 0.2s ease;
-    `;
 
     // 创建翻译弹窗
     this.translatePopup = document.createElement('div');
     this.translatePopup.className = 'bilingual-translate-popup';
-    this.translatePopup.style.cssText = `
-      position: absolute;
-      display: none;
-      max-width: 300px;
-      padding: 16px;
-      border-radius: 12px;
-      z-index: 999999;
-      font-size: 14px;
-      line-height: 1.4;
-    `;
 
     // 添加到页面
     document.body.appendChild(this.translateIcon);
@@ -152,10 +149,25 @@ class SelectionTranslator {
 
   updateIconStyle(theme) {
     const currentTheme = this.themes[theme] || this.themes.dark;
-    this.translateIcon.style.backgroundColor = currentTheme.styles.backgroundColor;
+    const styles = currentTheme.styles;
     
-    const iconColor = currentTheme.styles.color.replace('#', '%23');
-    this.translateIcon.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${iconColor}"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>')`;
+    this.translateIcon.style.cssText = `
+      position: absolute;
+      display: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: ${styles.backgroundColor};
+      background-image: url('${styles.iconSvg}');
+      background-size: 16px;
+      background-repeat: no-repeat;
+      background-position: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      z-index: 999999;
+      transition: transform 0.2s ease;
+      border: 1px solid ${styles.borderLeftColor}22;
+    `;
   }
 
   handleDoubleClick(e) {
