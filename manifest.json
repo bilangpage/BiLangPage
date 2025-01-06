@@ -43,6 +43,9 @@
       "js": [
         "src/themes.js",
         "src/sites/index.js",
+        "src/translation-service.js",
+        "src/selection-translator.js",
+        "src/page-translator.js",
         "content.js"
       ],
       "run_at": "document_idle"
