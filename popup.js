@@ -43,7 +43,6 @@ document.getElementById('enableSelection').addEventListener('change', async (eve
 
 // 更新界面文本语言
 function updateUILanguage(targetLang) {
-  // 获取所有需要翻译的标签
   const labels = {
     'enableTranslationLabel': {
       'zh-CN': '启用翻译',
@@ -88,39 +87,6 @@ function updateUILanguage(targetLang) {
       'de': 'Theme-Stil',
       'es': 'Estilo del tema',
       'ar': 'نمط المظهر'
-    },
-    'previewLabel': {
-      'zh-CN': '主题预览',
-      'zh-TW': '主題預覽',
-      'en': 'Theme Preview',
-      'ja': 'テーマプレビュー',
-      'ko': '테마 미리보기',
-      'fr': 'Aperçu du thème',
-      'de': 'Theme-Vorschau',
-      'es': 'Vista previa del tema',
-      'ar': 'معاينة المظهر'
-    },
-    'previewOriginalText': {
-      'zh-CN': '原文示例',
-      'zh-TW': '原文示例',
-      'en': 'Original Text',
-      'ja': '原文サンプル',
-      'ko': '원문 예시',
-      'fr': 'Texte original',
-      'de': 'Originaltext',
-      'es': 'Texto original',
-      'ar': 'النص الأصلي'
-    },
-    'previewTranslationText': {
-      'zh-CN': '译文示例',
-      'zh-TW': '譯文示例',
-      'en': 'Translation Text',
-      'ja': '訳文サンプル',
-      'ko': '번역 예시',
-      'fr': 'Texte traduit',
-      'de': 'Übersetzter Text',
-      'es': 'Texto traducido',
-      'ar': 'النص المترجم'
     }
   };
 
@@ -130,16 +96,6 @@ function updateUILanguage(targetLang) {
     if (element) {
       element.textContent = translations[targetLang] || translations['en'];
     }
-  }
-
-  // 更新预览文本
-  const previewOriginal = document.querySelector('.preview-original');
-  const previewTranslation = document.querySelector('.preview-translation');
-  if (previewOriginal) {
-    previewOriginal.textContent = labels['previewOriginalText'][targetLang] || labels['previewOriginalText']['en'];
-  }
-  if (previewTranslation) {
-    previewTranslation.textContent = labels['previewTranslationText'][targetLang] || labels['previewTranslationText']['en'];
   }
 }
 
@@ -151,43 +107,26 @@ document.getElementById('targetLang').addEventListener('change', async (event) =
   updateUILanguage(targetLang);
 });
 
-// 更新主题预览
-function updateThemePreview(theme) {
-  const previewContainer = document.getElementById('themePreview');
-  // 移除所有主题类
-  previewContainer.className = 'theme-preview-container';
-  // 添加新主题类
-  previewContainer.classList.add(theme);
-}
-
 // 主题切换处理
 document.getElementById('theme').addEventListener('change', async (event) => {
   const theme = event.target.value;
   await chrome.storage.sync.set({ theme });
-  updateThemePreview(theme);
 });
 
 // 初始化界面状态
 document.addEventListener('DOMContentLoaded', async () => {
   const { enabled, selectionEnabled, targetLang, theme } = await chrome.storage.sync.get(['enabled', 'selectionEnabled', 'targetLang', 'theme']);
   
-  // 设置开关状态
   document.getElementById('enableTranslation').checked = enabled !== false;
   document.getElementById('enableSelection').checked = selectionEnabled === true;
   
-  // 设置语言选择
   if (targetLang) {
     document.getElementById('targetLang').value = targetLang;
   }
   
-  // 设置主题选择
   if (theme) {
     document.getElementById('theme').value = theme;
   }
   
-  // 更新界面语言
   updateUILanguage(targetLang || 'zh-CN');
-  
-  // 更新主题预览
-  updateThemePreview(theme || 'dark');
 }); 

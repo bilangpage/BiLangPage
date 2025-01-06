@@ -49,6 +49,11 @@ class PageTranslator {
         if (changes.targetLang) {
           console.log(`Language setting changed: ${changes.targetLang.oldValue} -> ${changes.targetLang.newValue}`);
           this.translationService.setTargetLang(changes.targetLang.newValue);
+          // 语言改变时需要重新翻译
+          if (this.enabled) {
+            this.removeAllTranslations();
+            this.debouncedTranslate();
+          }
         }
 
         // 处理启用状态变化
@@ -61,17 +66,16 @@ class PageTranslator {
           }
         }
 
-        // 如果语言或主题发生变化且插件启用，重新翻译
-        if (this.enabled && (changes.targetLang || changes.theme)) {
-          this.removeAllTranslations();
-          this.debouncedTranslate();
+        // 主题改变时只更新样式
+        if (changes.theme && this.enabled) {
+          this.updateTranslationsStyle(changes.theme.newValue);
         }
       });
 
-      return enabled;  // 返回初始启用状态
+      return enabled;
     } catch (error) {
       console.error('初始化状态失败:', error);
-      return false;  // 发生错误时返回禁用状态
+      return false;
     }
   }
 
@@ -340,6 +344,38 @@ class PageTranslator {
       this.observer = null;
     }
     this.removeAllTranslations();
+  }
+
+  // 添加新方法：更新所有翻译的样式
+  async updateTranslationsStyle(theme) {
+    const currentTheme = this.themes[theme] || this.themes.dark;
+    const translations = document.querySelectorAll('.bilingual-translation');
+    
+    translations.forEach(translation => {
+      translation.style.cssText = `
+        display: block !important;
+        visibility: visible !important;
+        margin-top: 8px !important;
+        padding: 8px 12px !important;
+        border-left: 3px solid ${currentTheme.styles.borderLeftColor} !important;
+        color: ${currentTheme.styles.color} !important;
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+        opacity: 1 !important;
+        height: auto !important;
+        overflow: visible !important;
+        position: relative !important;
+        z-index: 1 !important;
+        background-color: ${currentTheme.styles.backgroundColor} !important;
+        margin-left: 4px !important;
+        pointer-events: none !important;
+        clear: both !important;
+        width: fit-content !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: 4px !important;
+      `;
+    });
   }
 }
 
