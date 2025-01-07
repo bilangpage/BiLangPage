@@ -92,7 +92,11 @@ const siteAdapters = {
         type: 'post',
         elements: [
           '#mainContent span.q-box.qu-userSelect--text span',
-          '#mainContent span.q-box.qu-userSelect--text p span'
+          '#mainContent span.q-box.qu-userSelect--text p span',
+          '#mainContent div[class^="q-box"] div[class*="qu-bold"]',
+          '#main_page_wrapper span.q-box.qu-userSelect--text span',
+          '#main_page_wrapper span.q-box.qu-userSelect--text p span',
+          '#main_page_wrapper div[class^="q-box"] div[class*="qu-bold"]',
         ]
       }
     ],
