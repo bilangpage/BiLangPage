@@ -134,7 +134,7 @@ const siteAdapters = {
       {
         type: 'comment',
         elements: [
-          'pre'
+          'pre:not([class*=" "])'
         ]
       }
     ]
