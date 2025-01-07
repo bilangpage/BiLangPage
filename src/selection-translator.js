@@ -186,8 +186,8 @@ class SelectionTranslator {
     const rects = range.getClientRects();
     if (!rects.length) return;
 
-    // 使用第一个矩形（通常是选区的开始位置）
-    const lastRect = rects[0];
+    // 使用最后一个矩形（通常是选区的结束位置）
+    const lastRect = rects[rects.length - 1];
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
 
