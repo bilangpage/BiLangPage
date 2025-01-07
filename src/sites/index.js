@@ -37,7 +37,15 @@ const siteAdapters = {
       {
         type: 'comment',
         elements: [
-          'shreddit-comment-tree p'
+          'shreddit-comment-tree p',
+          'shreddit-profile-comment p'
+        ]
+      },
+      {
+        type: 'community-information',
+        elements: [
+          'aside[aria-label="Community information"] div[id="description"]',
+          'aside[aria-label="Community information"] div[class^="i18n-translatable-text"] div[class^="md"] p'
         ]
       }
     ],

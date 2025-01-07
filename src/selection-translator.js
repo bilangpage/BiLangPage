@@ -182,12 +182,23 @@ class SelectionTranslator {
   }
 
   updateIconPosition(range) {
-    const rect = range.getBoundingClientRect();
-    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    // 获取选区的所有矩形
+    const rects = range.getClientRects();
+    if (!rects.length) return;
 
-    this.translateIcon.style.left = `${rect.right + scrollX + 10}px`;
-    this.translateIcon.style.top = `${rect.top + scrollY}px`;
+    // 使用第一个矩形（通常是选区的开始位置）
+    const lastRect = rects[0];
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    // 如果位置为0
+    if (lastRect.right === 0 && lastRect.top === 0) {
+      return // 暂不支持父容器是flex布局
+    } else {
+      this.translateIcon.style.left = `${lastRect.right + scrollX + 10}px`;
+      this.translateIcon.style.top = `${lastRect.top + scrollY}px`;
+    }
+
     this.translateIcon.style.display = 'block';
 
     if (this.translatePopup.style.display === 'block') {
@@ -287,6 +298,8 @@ class SelectionTranslator {
       const translatedText = await this.translationService.translate(this.selectedText);
       if (translatedText) {
         this.showTranslation(translatedText, currentTheme);
+      } else {
+        this.showError();
       }
     } catch (error) {
       this.showError();
