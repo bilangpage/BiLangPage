@@ -313,7 +313,8 @@ class PageTranslator {
 
       // 翻译文本
       const translatedText = await this.translationService.translate(originalText);
-      if (translatedText === "") {
+      // 如果翻译结果为空或与原文相同，则不添加翻译元素
+      if (translatedText === "" || translatedText === originalText) {
         return;
       }
   

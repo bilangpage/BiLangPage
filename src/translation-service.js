@@ -34,6 +34,18 @@ class TranslationService {
       'es': ['es']
     };
 
+    this.thresholds = {
+      'zh-CN': 0.6,
+      'zh-TW': 0.6,
+      'ja': 0.5,
+      'ko': 0.5,
+      'en': 0.35,
+      'ar': 0.5,
+      'fr': 0.35,
+      'de': 0.35,
+      'es': 0.35
+    };
+
     this.errorMessages = {
       'zh-CN': 'Google翻译接口今日被限制使用',
       'zh-TW': 'Google翻譯接口今日被限制使用',
@@ -47,8 +59,77 @@ class TranslationService {
     };
   }
 
+  isTargetLanguage(text) {
+    let targetLangChars = 0;
+    let totalChars = 0;
+    
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code <= 0x2F || (code >= 0x3A && code <= 0x40) || 
+          (code >= 0x5B && code <= 0x60) || (code >= 0x7B && code <= 0x7F)) {
+        continue;
+      }
+      totalChars++;
+      
+      switch (this.targetLang) {
+        case 'zh-CN':
+        case 'zh-TW':
+          if ((code >= 0x4E00 && code <= 0x9FFF) ||
+              (code >= 0x3400 && code <= 0x4DBF) ||
+              (code >= 0x20000 && code <= 0x2A6DF) ||
+              (code >= 0x2A700 && code <= 0x2B73F) ||
+              (code >= 0x2B740 && code <= 0x2B81F) ||
+              (code >= 0x2B820 && code <= 0x2CEAF) ||
+              (code >= 0x2CEB0 && code <= 0x2EBEF)) {
+            targetLangChars++;
+          }
+          break;
+        case 'ja':
+          if ((code >= 0x3040 && code <= 0x309F) ||
+              (code >= 0x30A0 && code <= 0x30FF) ||
+              (code >= 0x4E00 && code <= 0x9FFF) ||
+              (code >= 0xFF66 && code <= 0xFF9F)) {
+            targetLangChars++;
+          }
+          break;
+        case 'ko':
+          if ((code >= 0xAC00 && code <= 0xD7AF) ||
+              (code >= 0x1100 && code <= 0x11FF) ||
+              (code >= 0x3130 && code <= 0x318F)) {
+            targetLangChars++;
+          }
+          break;
+        case 'en':
+        case 'fr':
+        case 'de':
+        case 'es':
+          if ((code >= 0x41 && code <= 0x5A) ||
+              (code >= 0x61 && code <= 0x7A) ||
+              (code >= 0xC0 && code <= 0xFF && code !== 0xD7 && code !== 0xF7)) {
+            targetLangChars++;
+          }
+          break;
+        case 'ar':
+          if (code >= 0x0600 && code <= 0x06FF) {
+            targetLangChars++;
+          }
+          break;
+        default:
+          return false;
+      }
+    }
+    
+    const threshold = this.thresholds[this.targetLang] || 0.5;
+    return totalChars > 0 && (targetLangChars / totalChars) > threshold;
+  }
+
   async translate(text) {
     if (!text.trim()) return '';
+
+    // 如果原文是目标语言, 则直接返回原文
+    if (this.isTargetLanguage(text)) {
+      return text;
+    }
 
     try {
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${this.targetLang}&dt=t&dt=ld&q=${encodeURIComponent(text)}`;
@@ -60,9 +141,10 @@ class TranslationService {
 
       const detectedLang = data?.[2] || null;
 
+      // 如果检测到的语言是目标语言，则直接返回原文
       if (detectedLang && this.targetLangMap[this.targetLang]?.includes(detectedLang)) {
         console.log(`Skipping translation based on API detection: ${detectedLang}`);
-        return '';
+        return text;
       }
 
       let translatedText = '';
