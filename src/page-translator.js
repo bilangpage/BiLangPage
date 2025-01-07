@@ -157,43 +157,73 @@ class PageTranslator {
         const currentSite = window.siteAdapters.getSiteAdapter(window.location.hostname);
         if (!currentSite) return;
 
-        const hasNewContent = mutations.some(mutation =>
-          mutation.addedNodes.length > 0 &&
-          Array.from(mutation.addedNodes).some(node => {
-            if (node.nodeType !== 1) return false;
-
-            // 如果是翻译元素，直接跳过
-            if (node.classList?.contains('bilingual-translation')) return false;
-
-            // 如果节点或其父节点已经被翻译过，跳过
-            let currentNode = node;
-            while (currentNode) {
-              if (currentNode.hasAttribute('data-translated')) return false;
-              currentNode = currentNode.parentElement;
-            }
-
-            // 检查是否匹配选择器
-            return currentSite.selectors.some(selector =>
-              selector.elements.some(selectorStr => {
-                if (selectorStr.includes(' ')) {
-                  return document.querySelector(selectorStr) !== null;
+        for (const mutation of mutations) {
+          // 处理元素移除
+          if (mutation.removedNodes.length > 0) {
+            mutation.removedNodes.forEach(node => {
+              if (node.nodeType === 1) { // 元素节点
+                // 检查移除的元素是否有翻译
+                if (node.hasAttribute('data-translated')) {
+                  // 获取下一个兄弟元素（翻译元素）
+                  const translationElement = node.nextElementSibling;
+                  if (translationElement?.classList?.contains('bilingual-translation')) {
+                    const originalText = translationElement.getAttribute('data-original-text');
+                    if (originalText) {
+                      this.translatedTexts.delete(this.md5(originalText));
+                    }
+                  }
                 }
-                return node.matches(selectorStr);
-              })
-            );
-          })
-        );
+                // 检查移除的元素内部的翻译
+                const translations = node.querySelectorAll('.bilingual-translation');
+                translations.forEach(translation => {
+                  const originalText = translation.getAttribute('data-original-text');
+                  if (originalText) {
+                    this.translatedTexts.delete(this.md5(originalText));
+                  }
+                });
+              }
+            });
+          }
 
-        if (hasNewContent) {
-          // 开始翻译新的内容
-          this.debouncedTranslate();
+          // 处理新增元素
+          const hasNewContent = mutation.addedNodes.length > 0 &&
+            Array.from(mutation.addedNodes).some(node => {
+              if (node.nodeType !== 1) return false;
+
+              // 如果是翻译元素，直接跳过
+              if (node.classList?.contains('bilingual-translation')) return false;
+
+              // 如果节点或其父节点已经被翻译过，跳过
+              let currentNode = node;
+              while (currentNode) {
+                if (currentNode.hasAttribute('data-translated')) return false;
+                currentNode = currentNode.parentElement;
+              }
+
+              // 检查是否匹配选择器
+              return currentSite.selectors.some(selector =>
+                selector.elements.some(selectorStr => {
+                  if (selectorStr.includes(' ')) {
+                    return document.querySelector(selectorStr) !== null;
+                  }
+                  return node.matches(selectorStr);
+                })
+              );
+            });
+
+          if (hasNewContent) {
+            // 开始翻译新的内容
+            this.debouncedTranslate();
+          }
         }
       });
 
       // 开始观察页面变化
       this.observer.observe(document.body, {
-        childList: true,
-        subtree: true
+        childList: true, // 监听子节点变化
+        subtree: true, // 监听子树变化
+        attributes: false, // 不监听属性变化
+        characterData: false // 不监听文本内容变化
       });
 
       // 开始首次翻译
@@ -215,26 +245,13 @@ class PageTranslator {
       return;
     }
 
-    // 根据网站类型使用不同的翻译文本集合更新策略
-    const isTwitter = window.location.hostname.includes('x.com');
-    if (isTwitter) {
-      // 对于 Twitter/X，清除并只保留当前存在于页面中的翻译
-      this.translatedTexts.clear();
-      document.querySelectorAll('.bilingual-translation').forEach(el => {
-        const originalText = el.getAttribute('data-original-text');
-        if (originalText && document.contains(el)) {
-          this.translatedTexts.add(this.md5(originalText));
-        }
-      });
-    } else {
-      // 对于其他网站，只添加新的翻译，不清除旧的
-      document.querySelectorAll('.bilingual-translation').forEach(el => {
-        const originalText = el.getAttribute('data-original-text');
-        if (originalText) {
-          this.translatedTexts.add(this.md5(originalText));
-        }
-      });
-    }
+    // 添加已翻译的文本
+    document.querySelectorAll('.bilingual-translation').forEach(el => {
+      const originalText = el.getAttribute('data-original-text');
+      if (originalText) {
+        this.translatedTexts.add(this.md5(originalText));
+      }
+    });
 
     console.log(`Using ${currentSite.name} adapter`);
 
