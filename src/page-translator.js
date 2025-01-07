@@ -29,6 +29,17 @@ class PageTranslator {
     this.lastSettings = {};
     this.isProcessingChange = false; // 添加处理锁
 
+    // 添加 MD5 哈希函数
+    this.md5 = function(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      return hash.toString(16);
+    };
+
     // 绑定方法
     this.translateElements = this.translateElements.bind(this);
     this.debouncedTranslate = this.debounce(this.translateElements, 200);
@@ -198,18 +209,31 @@ class PageTranslator {
     const { theme = 'dark' } = await chrome.storage.sync.get(['theme']);
     const currentTheme = this.themes[theme] || this.themes.dark;
 
-    // 更新已翻译的文本集合（只添加新的，不清除旧的）
-    document.querySelectorAll('.bilingual-translation').forEach(el => {
-      const originalText = el.getAttribute('data-original-text');
-      if (originalText) {
-        this.translatedTexts.add(originalText);
-      }
-    });
-  
     // 获取当前网站的适配器
     const currentSite = window.siteAdapters.getSiteAdapter(window.location.hostname);
     if (!currentSite) {
       return;
+    }
+
+    // 根据网站类型使用不同的翻译文本集合更新策略
+    const isTwitter = window.location.hostname.includes('x.com');
+    if (isTwitter) {
+      // 对于 Twitter/X，清除并只保留当前存在于页面中的翻译
+      this.translatedTexts.clear();
+      document.querySelectorAll('.bilingual-translation').forEach(el => {
+        const originalText = el.getAttribute('data-original-text');
+        if (originalText && document.contains(el)) {
+          this.translatedTexts.add(this.md5(originalText));
+        }
+      });
+    } else {
+      // 对于其他网站，只添加新的翻译，不清除旧的
+      document.querySelectorAll('.bilingual-translation').forEach(el => {
+        const originalText = el.getAttribute('data-original-text');
+        if (originalText) {
+          this.translatedTexts.add(this.md5(originalText));
+        }
+      });
     }
 
     console.log(`Using ${currentSite.name} adapter`);
@@ -280,17 +304,16 @@ class PageTranslator {
       if (!originalText) return;
 
       // 检查是否已经翻译过相同的文本
-      if (this.translatedTexts.has(originalText)) {
+      const textHash = this.md5(originalText);
+      if (this.translatedTexts.has(textHash)) {
         return;
       }
-      // 先添加到已翻译集合再翻译，因为翻译需要时间，避免重复翻译
-      this.translatedTexts.add(originalText);
+      // 先添加到已翻译集合再翻译
+      this.translatedTexts.add(textHash);
 
       // 翻译文本
       const translatedText = await this.translationService.translate(originalText);
       if (translatedText === "") {
-        // 翻译失败，从已翻译集合中删除
-        // this.translatedTexts.delete(originalText);
         return;
       }
   
