@@ -37,7 +37,15 @@ const siteAdapters = {
       {
         type: 'comment',
         elements: [
-          'shreddit-comment-tree p'
+          'shreddit-comment-tree p',
+          'shreddit-profile-comment p'
+        ]
+      },
+      {
+        type: 'community-information',
+        elements: [
+          'aside[aria-label="Community information"] div[id="description"]',
+          'aside[aria-label="Community information"] div[class^="i18n-translatable-text"] div[class^="md"] p'
         ]
       }
     ],
@@ -84,7 +92,11 @@ const siteAdapters = {
         type: 'post',
         elements: [
           '#mainContent span.q-box.qu-userSelect--text span',
-          '#mainContent span.q-box.qu-userSelect--text p span'
+          '#mainContent span.q-box.qu-userSelect--text p span',
+          '#mainContent div[class^="q-box"] div[class*="qu-bold"]',
+          '#main_page_wrapper span.q-box.qu-userSelect--text span',
+          '#main_page_wrapper span.q-box.qu-userSelect--text p span',
+          '#main_page_wrapper div[class^="q-box"] div[class*="qu-bold"]',
         ]
       }
     ],
@@ -122,7 +134,7 @@ const siteAdapters = {
       {
         type: 'comment',
         elements: [
-          'pre'
+          'pre:not([class*=" "])'
         ]
       }
     ]

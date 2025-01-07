@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_appName__",
   "short_name": "__MSG_appShortName__",
-  "version": "1.3",
+  "version": "1.4",
   "description": "__MSG_appDesc__",
   "default_locale": "zh_CN",
   "icons": {
@@ -43,6 +43,9 @@
       "js": [
         "src/themes.js",
         "src/sites/index.js",
+        "src/translation-service.js",
+        "src/selection-translator.js",
+        "src/page-translator.js",
         "content.js"
       ],
       "run_at": "document_idle"

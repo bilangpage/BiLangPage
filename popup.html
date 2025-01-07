@@ -22,114 +22,58 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     body {
-      width: 300px;
+      width: 100%;
+      min-width: 300px;
+      max-width: 100vw;
+      margin: 0;
       padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       background-color: #1a1a1a;
       color: #ffffff;
+      font-size: 18px;
     }
 
     .container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-    }
-
-    .title {
-      font-size: 18px;
-      font-weight: 600;
-      margin: 0;
-      color: #ffffff;
-    }
-
-    .select-wrapper {
-      position: relative;
+      gap: 20px;
       width: 100%;
-    }
-
-    .select-wrapper::after {
-      content: "▼";
-      font-size: 12px;
-      color: #ffffff;
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-
-    select {
-      width: 100%;
-      padding: 8px 12px;
-      font-size: 14px;
-      border: 2px solid #4a4a4a;
-      border-radius: 6px;
-      background-color: #2d2d2d;
-      color: #ffffff;
-      appearance: none;
-      cursor: pointer;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    select:hover {
-      border-color: #666666;
-      background-color: #333333;
-    }
-
-    select:focus {
-      border-color: #0079d3;
-      box-shadow: 0 0 0 2px rgba(0, 121, 211, 0.2);
-    }
-
-    option {
-      background-color: #2d2d2d;
-      color: #ffffff;
-      padding: 8px;
-    }
-
-    .footer {
-      margin-top: 16px;
-      font-size: 12px;
-      color: #888888;
-      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     .settings-group {
-      margin-bottom: 16px;
-    }
-    
-    .settings-label {
-      display: block;
-      margin-bottom: 8px;
-      color: #888888;
-      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
     }
 
-    .preview-label {
-      display: block;
-      margin-top: 12px;
-      margin-bottom: 4px;
-      color: #888888;
-      font-size: 12px;
-      font-style: italic;
+    .settings-label {
+      font-size: 18px;
+      color: #ffffff;
+      margin-bottom: 0;
     }
 
     .switch-wrapper {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
-      padding: 8px 0;
+      margin-bottom: 8px;
+      width: 100%;
     }
 
+    /* Switch 样式 */
     .switch {
       position: relative;
       display: inline-block;
-      width: 48px;
-      height: 24px;
+      width: 40px;
+      height: 20px;
+      flex-shrink: 0;
     }
 
     .switch input {
@@ -145,190 +89,106 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #4a4a4a;
+      background-color: #ccc;
       transition: .4s;
-      border-radius: 24px;
+      border-radius: 20px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
       background-color: white;
       transition: .4s;
       border-radius: 50%;
     }
 
     input:checked + .slider {
-      background-color: #0079d3;
+      background-color: #2196F3;
     }
 
     input:checked + .slider:before {
-      transform: translateX(24px);
+      transform: translateX(20px);
     }
 
-    .theme-preview-container {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      background-color: #ffffff !important;
+    /* Select 样式 */
+    .select-wrapper {
+      position: relative;
+      width: 100%;
     }
 
-    .preview-content {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .preview-original {
-      font-size: 14px;
-      color: #000000 !important;
-      padding: 4px;
-    }
-
-    .preview-translation {
-      font-size: 14px;
-      padding: 8px 12px;
+    .select-wrapper select {
+      width: 100%;
+      padding: 8px 24px 8px 12px;
+      font-size: 18px;
+      border: 1px solid #333;
       border-radius: 4px;
-      margin-left: 4px;
-      width: fit-content;
-      max-width: 100%;
-      box-sizing: border-box;
-    }
-
-    /* Dark Theme Preview */
-    .theme-preview-container.dark {
-      background-color: #1a1a1a;
-    }
-    .theme-preview-container.dark .preview-original {
+      background-color: #2d2d2d;
       color: #ffffff;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
     }
-    .theme-preview-container.dark .preview-translation {
-      background-color: #1a1a1a;
+
+    .select-wrapper::after {
+      content: "▼";
+      font-size: 12px;
       color: #ffffff;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
     }
 
-    /* Light Theme Preview */
-    .theme-preview-container.light {
-      background-color: #ffffff;
-    }
-    .theme-preview-container.light .preview-original {
-      color: #000000;
-    }
-    .theme-preview-container.light .preview-translation {
-      background-color: #ffffff;
-      color: #000000;
-    }
+    /* 移动端优化 */
+    @media (max-width: 480px) {
+      body {
+        padding: 16px;
+        font-size: 16px;
+      }
+      
+      .container {
+        gap: 16px;
+      }
+      
+      .settings-group {
+        gap: 10px;
+      }
 
-    /* Deep Blue Theme Preview */
-    .theme-preview-container.deepBlue {
-      background-color: #1a365d;
-    }
-    .theme-preview-container.deepBlue .preview-original {
-      color: #ffffff;
-    }
-    .theme-preview-container.deepBlue .preview-translation {
-      background-color: #1a365d;
-      color: #ffffff;
-    }
+      .title {
+        font-size: 20px;
+      }
 
-    /* Dark Gray & Orange Theme Preview */
-    .theme-preview-container.darkGrayOrange {
-      background-color: #2D3748;
-    }
-    .theme-preview-container.darkGrayOrange .preview-original {
-      color: #ED8936;
-    }
-    .theme-preview-container.darkGrayOrange .preview-translation {
-      background-color: #2D3748;
-      color: #ED8936;
-    }
+      .settings-label {
+        font-size: 16px;
+      }
 
-    /* Brown Yellow Theme Preview */
-    .theme-preview-container.brownYellow {
-      background-color: #744210;
-    }
-    .theme-preview-container.brownYellow .preview-original {
-      color: #F6E05E;
-    }
-    .theme-preview-container.brownYellow .preview-translation {
-      background-color: #744210;
-      color: #F6E05E;
-    }
-
-    /* Almost Black & Sky Blue Theme Preview */
-    .theme-preview-container.almostBlackSkyBlue {
-      background-color: #1A202C;
-    }
-    .theme-preview-container.almostBlackSkyBlue .preview-original {
-      color: #63B3ED;
-    }
-    .theme-preview-container.almostBlackSkyBlue .preview-translation {
-      background-color: #1A202C;
-      color: #63B3ED;
-    }
-
-    /* Purple Yellow Theme Preview */
-    .theme-preview-container.purpleYellow {
-      background-color: #702459;
-    }
-    .theme-preview-container.purpleYellow .preview-original {
-      color: #FBBF24;
-    }
-    .theme-preview-container.purpleYellow .preview-translation {
-      background-color: #702459;
-      color: #FBBF24;
-    }
-
-    /* Dark Green Light Green Theme Preview */
-    .theme-preview-container.darkGreenLightGreen {
-      background-color: #065F46;
-    }
-    .theme-preview-container.darkGreenLightGreen .preview-original {
-      color: #6EE7B7;
-    }
-    .theme-preview-container.darkGreenLightGreen .preview-translation {
-      background-color: #065F46;
-      color: #6EE7B7;
-    }
-
-    /* Black Neon Green Theme Preview */
-    .theme-preview-container.blackNeonGreen {
-      background-color: #131516;
-    }
-    .theme-preview-container.blackNeonGreen .preview-original {
-      color: #70e000;
-    }
-    .theme-preview-container.blackNeonGreen .preview-translation {
-      background-color: #131516;
-      color: #70e000;
-    }
-
-    /* Mystic Black Slate Blue Theme Preview */
-    .theme-preview-container.mysticBlackSlateBlue {
-      background-color: #000000;
-    }
-    .theme-preview-container.mysticBlackSlateBlue .preview-original {
-      color: #6A5ACD;
-    }
-    .theme-preview-container.mysticBlackSlateBlue .preview-translation {
-      background-color: #000000;
-      color: #6A5ACD;
+      .select-wrapper select {
+        font-size: 16px;
+        padding: 6px 20px 6px 8px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">BiLangPage</h1>
-    
+  <div class="container">  
     <div class="switch-wrapper">
       <label class="settings-label" id="enableTranslationLabel">Enable Translation</label>
       <label class="switch">
         <input type="checkbox" id="enableTranslation" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="switch-wrapper">
+      <label class="settings-label" id="enableSelectionLabel">Enable Selection Translation</label>
+      <label class="switch">
+        <input type="checkbox" id="enableSelection">
         <span class="slider"></span>
       </label>
     </div>
@@ -351,7 +211,7 @@
 
     <div class="settings-group">
       <label class="settings-label" id="themeStyleLabel">Theme Style</label>
-      <div class="select-wrapper theme-select">
+      <div class="select-wrapper">
         <select id="theme">
           <option value="dark">Dark</option>
           <option value="light">Light</option>
@@ -364,13 +224,6 @@
           <option value="blackNeonGreen">Black & Neon Green</option>
           <option value="mysticBlackSlateBlue">Mystic Black & Slate Blue</option>
         </select>
-      </div>
-      <div class="preview-label" id="previewLabel">Theme Preview</div>
-      <div id="themePreview" class="theme-preview-container">
-        <div class="preview-content">
-          <div class="preview-original">Original Text</div>
-          <div class="preview-translation">Translation Text</div>
-        </div>
       </div>
     </div>
   </div>

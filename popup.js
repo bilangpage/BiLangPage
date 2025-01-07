@@ -19,20 +19,55 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
  */
 
-// 启用/禁用切换处理
-document.getElementById('enableTranslation').addEventListener('change', async (event) => {
-  const enabled = event.target.checked;
-  await chrome.storage.sync.set({ enabled });
-  // 通知内容脚本更新状态
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tabs[0]) {
-    chrome.tabs.sendMessage(tabs[0].id, { type: 'toggleTranslation', enabled });
+// 创建一个函数来同时处理存储和消息发送
+async function updateSetting(key, value) {
+  try {
+    // 1. 更新存储
+    await chrome.storage.sync.set({ [key]: value });
+    
+    // 2. 尝试发送消息（作为备用方案）
+    try {
+      const tabs = await chrome.tabs.query({});
+      for (const tab of tabs) {
+        chrome.tabs.sendMessage(tab.id, { 
+          type: key === 'enabled' ? 'toggleTranslation' : 
+                key === 'selectionEnabled' ? 'toggleSelection' :
+                key === 'targetLang' ? 'updateTargetLang' :
+                key === 'theme' ? 'updateTheme' : 'updateSetting',
+          [key]: value 
+        }).catch(() => {
+          // 忽略消息发送失败
+        });
+      }
+    } catch (e) {
+      // 忽略消息发送错误
+      console.log('Message sending failed, falling back to polling:', e);
+    }
+  } catch (error) {
+    console.error('Failed to update setting:', error);
   }
+}
+
+// 修改事件监听器
+document.getElementById('enableTranslation').addEventListener('change', (event) => {
+  updateSetting('enabled', event.target.checked);
+});
+
+document.getElementById('enableSelection').addEventListener('change', (event) => {
+  updateSetting('selectionEnabled', event.target.checked);
+});
+
+document.getElementById('targetLang').addEventListener('change', (event) => {
+  updateSetting('targetLang', event.target.value);
+  updateUILanguage(event.target.value);
+});
+
+document.getElementById('theme').addEventListener('change', (event) => {
+  updateSetting('theme', event.target.value);
 });
 
 // 更新界面文本语言
 function updateUILanguage(targetLang) {
-  // 获取所有需要翻译的标签
   const labels = {
     'enableTranslationLabel': {
       'zh-CN': '启用翻译',
@@ -44,6 +79,17 @@ function updateUILanguage(targetLang) {
       'de': 'Übersetzung aktivieren',
       'es': 'Activar traducción',
       'ar': 'تفعيل الترجمة'
+    },
+    'enableSelectionLabel': {
+      'zh-CN': '启用划词翻译',
+      'zh-TW': '啟用劃詞翻譯',
+      'en': 'Enable Selection Translation',
+      'ja': '選択翻訳を有効にする',
+      'ko': '선택 번역 활성화',
+      'fr': 'Activer la traduction de sélection',
+      'de': 'Textauswahl-Übersetzung aktivieren',
+      'es': 'Activar traducción de selección',
+      'ar': 'تفعيل ترجمة النص المحدد'
     },
     'targetLanguageLabel': {
       'zh-CN': '目标语言',
@@ -66,39 +112,6 @@ function updateUILanguage(targetLang) {
       'de': 'Theme-Stil',
       'es': 'Estilo del tema',
       'ar': 'نمط المظهر'
-    },
-    'previewLabel': {
-      'zh-CN': '主题预览',
-      'zh-TW': '主題預覽',
-      'en': 'Theme Preview',
-      'ja': 'テーマプレビュー',
-      'ko': '테마 미리보기',
-      'fr': 'Aperçu du thème',
-      'de': 'Theme-Vorschau',
-      'es': 'Vista previa del tema',
-      'ar': 'معاينة المظهر'
-    },
-    'previewOriginalText': {
-      'zh-CN': '原文示例',
-      'zh-TW': '原文示例',
-      'en': 'Original Text',
-      'ja': '原文サンプル',
-      'ko': '원문 예시',
-      'fr': 'Texte original',
-      'de': 'Originaltext',
-      'es': 'Texto original',
-      'ar': 'النص الأصلي'
-    },
-    'previewTranslationText': {
-      'zh-CN': '译文示例',
-      'zh-TW': '譯文示例',
-      'en': 'Translation Text',
-      'ja': '訳文サンプル',
-      'ko': '번역 예시',
-      'fr': 'Texte traduit',
-      'de': 'Übersetzter Text',
-      'es': 'Texto traducido',
-      'ar': 'النص المترجم'
     }
   };
 
@@ -109,57 +122,22 @@ function updateUILanguage(targetLang) {
       element.textContent = translations[targetLang] || translations['en'];
     }
   }
-
-  // 更新预览文本
-  const previewOriginal = document.querySelector('.preview-original');
-  const previewTranslation = document.querySelector('.preview-translation');
-  if (previewOriginal) {
-    previewOriginal.textContent = labels['previewOriginalText'][targetLang] || labels['previewOriginalText']['en'];
-  }
-  if (previewTranslation) {
-    previewTranslation.textContent = labels['previewTranslationText'][targetLang] || labels['previewTranslationText']['en'];
-  }
 }
 
-// 语言切换处理
-document.getElementById('targetLang').addEventListener('change', async (event) => {
-  const targetLang = event.target.value;
-  await chrome.storage.sync.set({ targetLang });
-  // 更新界面语言
-  updateUILanguage(targetLang);
-});
-
-// 更新主题预览
-function updateThemePreview(theme) {
-  const previewContainer = document.getElementById('themePreview');
-  // 移除所有主题类
-  previewContainer.className = 'theme-preview-container';
-  // 添加新主题类
-  previewContainer.classList.add(theme);
-}
-
-// 主题切换处理
-document.getElementById('theme').addEventListener('change', async (event) => {
-  const theme = event.target.value;
-  await chrome.storage.sync.set({ theme });
-  updateThemePreview(theme);
-});
-
-// 初始化选中值
-chrome.storage.sync.get(['targetLang', 'theme', 'enabled'], (result) => {
-  const targetLang = result.targetLang || 'zh-CN';
+// 初始化界面状态
+document.addEventListener('DOMContentLoaded', async () => {
+  const { enabled, selectionEnabled, targetLang, theme } = await chrome.storage.sync.get(['enabled', 'selectionEnabled', 'targetLang', 'theme']);
+  
+  document.getElementById('enableTranslation').checked = enabled !== false;
+  document.getElementById('enableSelection').checked = selectionEnabled === true;
+  
   if (targetLang) {
     document.getElementById('targetLang').value = targetLang;
-    // 初始化界面语言
-    updateUILanguage(targetLang);
   }
-  if (result.theme) {
-    document.getElementById('theme').value = result.theme;
-    updateThemePreview(result.theme);
-  } else {
-    // 默认主题
-    updateThemePreview('dark');
+  
+  if (theme) {
+    document.getElementById('theme').value = theme;
   }
-  // 设置启用/禁用状态
-  document.getElementById('enableTranslation').checked = result.enabled !== false;
+  
+  updateUILanguage(targetLang || 'zh-CN');
 }); 
