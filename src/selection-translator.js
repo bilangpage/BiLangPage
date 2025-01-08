@@ -70,20 +70,43 @@ class SelectionTranslator {
       this.translateIcon.style.transform = 'scale(1)';
     });
 
-    // 双击事件
-    document.addEventListener('dblclick', this.handleDoubleClick.bind(this));
+    // 检查是否是移动设备
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    // 选择文本事件
-    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    // 双击事件 - 仅桌面设备
+    if (!isMobile) {
+      document.addEventListener('dblclick', this.handleDoubleClick.bind(this));
+    }
+
+    // 选择文本事件 - 根据设备类型选择不同的事件
+    if (isMobile) {
+      document.addEventListener('selectionchange', this.handleSelectionChange.bind(this));
+    } else {
+      document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    }
 
     // 点击事件（关闭弹窗）
-    document.addEventListener('click', this.handleDocumentClick.bind(this));
+    if (isMobile) {
+      document.addEventListener('touchend', this.handleDocumentClick.bind(this));
+    } else {
+      document.addEventListener('click', this.handleDocumentClick.bind(this));
+    }
 
     // 滚动事件
     document.addEventListener('scroll', this.handleScroll.bind(this));
+    if (isMobile) {
+      document.addEventListener('touchmove', this.handleScroll.bind(this));
+    }
 
     // 翻译图标点击事件
-    this.translateIcon.addEventListener('click', this.handleTranslateClick.bind(this));
+    if (isMobile) {
+      this.translateIcon.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        this.handleTranslateClick();
+      });
+    } else {
+      this.translateIcon.addEventListener('click', this.handleTranslateClick.bind(this));
+    }
   }
 
   async initializeState() {
@@ -93,7 +116,6 @@ class SelectionTranslator {
       this.selectionEnabled = selectionEnabled === true;
       return this.selectionEnabled;
     } catch (error) {
-      console.error('初始化状态失败:', error);
       return false;
     }
   }
@@ -113,7 +135,6 @@ class SelectionTranslator {
           this.isProcessingChange = false;
         }
       } catch (error) {
-        console.error('Settings polling error:', error);
         this.isProcessingChange = false;
       }
     }, 3000);
@@ -173,12 +194,13 @@ class SelectionTranslator {
 
   isElementTranslation(element) {
     if (!element) return false;
-    return (
+    const result = (
       element.classList?.contains('bilingual-translation') ||
       element.classList?.contains('bilingual-translate-popup') ||
       element.closest('.bilingual-translation') !== null ||
       element.closest('.bilingual-translate-popup') !== null
     );
+    return result;
   }
 
   updateIconPosition(range) {
@@ -207,8 +229,21 @@ class SelectionTranslator {
   }
 
   updatePopupPosition() {
-    this.translatePopup.style.left = `${this.translateIcon.offsetLeft + 30}px`;
-    this.translatePopup.style.top = `${this.translateIcon.offsetTop}px`;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // 在移动设备上，水平居中，放置在屏幕顶部
+      const popupWidth = this.translatePopup.offsetWidth;
+      const left = Math.max(10, (window.innerWidth - popupWidth) / 2);
+      const top = 20; // 顶部留20px的空间
+      
+      this.translatePopup.style.left = `${left}px`;
+      this.translatePopup.style.top = `${top}px`;
+    } else {
+      // 桌面设备保持原有逻辑
+      this.translatePopup.style.left = `${this.translateIcon.offsetLeft + 30}px`;
+      this.translatePopup.style.top = `${this.translateIcon.offsetTop}px`;
+    }
   }
 
   updateIconStyle(theme) {
@@ -252,10 +287,44 @@ class SelectionTranslator {
   handleMouseUp(e) {
     if (!this.selectionEnabled) return;
 
+    // 如果点击在翻译图标或弹窗上，不做处理
+    if (this.translatePopup.contains(e.target) || this.translateIcon.contains(e.target)) {
+      return;
+    }
+
+    // 添加延时，确保能获取到选中的文本
+    setTimeout(() => {
+      // 先获取选中的文本
+      const selection = window.getSelection();
+      const text = selection.toString().trim();
+
+      // 如果没有选中文本，则隐藏UI
+      if (!text) {
+        this.hideUI();
+        return;
+      }
+
+      // 如果选中的是翻译内容，直接返回
+      if (this.isSelectionInTranslation(selection)) {
+        this.hideUI();
+        return;
+      }
+
+      // 更新位置
+      this.selectedText = text;
+      const range = selection.getRangeAt(0);
+      this.updateIconPosition(range);
+    }, 100);
+  }
+
+  handleSelectionChange() {
+    if (!this.selectionEnabled) return;
+
     if (this.selectionTimeout) {
       clearTimeout(this.selectionTimeout);
     }
 
+    // 添加延时，确保能获取到选中的文本
     this.selectionTimeout = setTimeout(() => {
       const selection = window.getSelection();
       const text = selection.toString().trim();
@@ -264,20 +333,22 @@ class SelectionTranslator {
         return;
       }
 
-      if (text && text !== this.selectedText && !this.translatePopup.contains(e.target)) {
+      if (text !== this.selectedText) {
         this.selectedText = text;
         const range = selection.getRangeAt(0);
         this.updateIconPosition(range);
-      } else if (!text) {
-        if (!this.translatePopup.contains(e.target) && !this.translateIcon.contains(e.target)) {
-          this.hideUI();
-        }
       }
-    }, 200);
+    }, 100);
   }
 
   handleDocumentClick(e) {
-    if (!this.translatePopup.contains(e.target) && !this.translateIcon.contains(e.target)) {
+    // 对于 touchend 事件，使用 changedTouches
+    const target = e.type === 'touchend' ? document.elementFromPoint(
+      e.changedTouches[0].clientX,
+      e.changedTouches[0].clientY
+    ) : e.target;
+
+    if (!this.translatePopup.contains(target) && !this.translateIcon.contains(target)) {
       this.hideUI();
     }
   }
@@ -313,10 +384,12 @@ class SelectionTranslator {
   }
 
   showTranslation(translatedText, currentTheme) {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
     this.translatePopup.style.cssText = `
-      position: absolute;
+      position: ${isMobile ? 'fixed' : 'absolute'};
       display: block;
-      max-width: 300px;
+      max-width: ${isMobile ? '90%' : '300px'};
       padding: 16px;
       background-color: ${currentTheme.styles.backgroundColor};
       color: ${currentTheme.styles.color};
