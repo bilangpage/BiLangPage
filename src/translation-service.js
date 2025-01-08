@@ -76,13 +76,12 @@ class TranslationService {
     const targetCount = cleanText.split('').filter(char => targetChars.test(char)).length;
     const ratio = targetCount === 0 ? 0 : targetCount / cleanText.length;
 
-    console.log(`${this.targetLang} detection:`, {
-      text,
-      cleanText,
-      targetCount,
-      totalChars: cleanText.length,
-      ratio
-    });
+    // 对于日语，需要特殊处理
+    if (this.targetLang === 'ja') {
+      // 如果文本中包含假名，更可能是日语
+      const hasKana = /[\u3040-\u309F\u30A0-\u30FF]/.test(cleanText);
+      return hasKana && ratio > 0.1; // 只要有假名存在，阈值可以更低
+    }
 
     return ratio > 0.25;
   }
@@ -90,9 +89,14 @@ class TranslationService {
   getTargetLanguageChars() {
     switch (this.targetLang) {
       case 'zh-CN':
-        return /[\u4e00-\u9fa5]/;
+        return /[\u4e00-\u9fa5]/;  // 简体中文汉字
       case 'ja':
-        return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
+        // 日语检测需要更精确：
+        // 1. 平假名 (\u3040-\u309F)
+        // 2. 片假名 (\u30A0-\u30FF)
+        // 3. 日文标点和符号 (\u3000-\u303F)
+        // 注意：不再包含汉字范围，因为这会导致与中文混淆
+        return /[\u3040-\u309F\u30A0-\u30FF\u3000-\u303F]/;
       case 'ko':
         return /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
       case 'ar':
