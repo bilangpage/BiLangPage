@@ -27,14 +27,10 @@ function getDefaultTargetLang() {
   // 支持的语言映射
   const supportedLangs = {
     'zh': 'zh-CN',      // 中文
-    'zh-cn': 'zh-CN',   // 简体中文
-    'zh-tw': 'zh-TW',   // 繁体中文
     'en': 'en',         // 英语
     'ja': 'ja',         // 日语
     'ko': 'ko',         // 韩语
-    'es': 'es',         // 西班牙语
-    'fr': 'fr',         // 法语
-    'de': 'de'          // 德语
+    'ar': 'ar',         // 阿拉伯语
   };
 
   // 如果浏览器语言完全匹配，直接返回

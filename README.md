@@ -32,7 +32,7 @@ BiLangPage is a Chrome extension that provides instant bilingual translations fo
 - 💫 Site-specific adapters for optimal experience
 - 🆓 Completely free and open source
 
-## Supported Websites
+## Site-Specific Adapters
 
 - Reddit: Posts, comments, and community content
 - X (Twitter): Tweets and conversations
@@ -40,11 +40,9 @@ BiLangPage is a Chrome extension that provides instant bilingual translations fo
 - Quora: Questions, answers, and comments
 - Medium: Articles, stories, and responses
 
-More websites coming soon!
+## Benefits of Site-Specific Adapters
 
-## Why Site-Specific?
-
-While a universal translation solution might seem appealing, we've chosen a site-specific approach to ensure the best possible user experience. Each website has its unique structure and dynamic content loading patterns. By creating custom adapters for each supported site, we can:
+Our site-specific adapter approach ensures the best user experience. By creating custom adapters for each supported site, we can:
 
 - ✓ Precisely identify and translate the content you care about
 - ✓ Maintain the original site's functionality and layout
@@ -77,19 +75,6 @@ cd bilangpage
    - Open Chrome and navigate to `chrome://extensions/`
    - Enable "Developer mode" in the top right
    - Click "Load unpacked" and select the project directory
-
-### Project Structure
-
-```
-bilangpage/
-├── manifest.json       # Extension manifest
-├── content.js         # Content script
-├── popup.html         # Extension popup
-├── popup.js          # Popup logic
-├── background.js     # Background script
-└── src/
-    └── sites/        # Site-specific adapters
-```
 
 ### Contributing
 

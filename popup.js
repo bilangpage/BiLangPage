@@ -71,46 +71,30 @@ function updateUILanguage(targetLang) {
   const labels = {
     'enableTranslationLabel': {
       'zh-CN': '启用翻译',
-      'zh-TW': '啟用翻譯',
       'en': 'Enable Translation',
       'ja': '翻訳を有効にする',
       'ko': '번역 활성화',
-      'fr': 'Activer la traduction',
-      'de': 'Übersetzung aktivieren',
-      'es': 'Activar traducción',
       'ar': 'تفعيل الترجمة'
     },
     'enableSelectionLabel': {
       'zh-CN': '启用划词翻译',
-      'zh-TW': '啟用劃詞翻譯',
       'en': 'Enable Selection Translation',
       'ja': '選択翻訳を有効にする',
       'ko': '선택 번역 활성화',
-      'fr': 'Activer la traduction de sélection',
-      'de': 'Textauswahl-Übersetzung aktivieren',
-      'es': 'Activar traducción de selección',
       'ar': 'تفعيل ترجمة النص المحدد'
     },
     'targetLanguageLabel': {
       'zh-CN': '目标语言',
-      'zh-TW': '目標語言',
       'en': 'Target Language',
       'ja': '対象言語',
       'ko': '대상 언어',
-      'fr': 'Langue cible',
-      'de': 'Zielsprache',
-      'es': 'Idioma objetivo',
       'ar': 'اللغة المستهدفة'
     },
     'themeStyleLabel': {
       'zh-CN': '主题样式',
-      'zh-TW': '主題樣式',
       'en': 'Theme Style',
       'ja': 'テーマスタイル',
       'ko': '테마 스타일',
-      'fr': 'Style du thème',
-      'de': 'Theme-Stil',
-      'es': 'Estilo del tema',
       'ar': 'نمط المظهر'
     }
   };

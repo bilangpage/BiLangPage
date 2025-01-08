@@ -24,38 +24,18 @@ class TranslationService {
     this.targetLang = targetLang;
     this.targetLangMap = {
       'zh-CN': ['zh-CN', 'zh'],
-      'zh-TW': ['zh-TW', 'zh'],
       'ja': ['ja'],
       'ko': ['ko'],
       'ar': ['ar'],
       'en': ['en'],
-      'fr': ['fr'],
-      'de': ['de'],
-      'es': ['es']
-    };
-
-    this.thresholds = {
-      'zh-CN': 0.6,
-      'zh-TW': 0.6,
-      'ja': 0.5,
-      'ko': 0.5,
-      'en': 0.35,
-      'ar': 0.5,
-      'fr': 0.35,
-      'de': 0.35,
-      'es': 0.35
     };
 
     this.errorMessages = {
       'zh-CN': 'Google翻译接口今日被限制使用',
-      'zh-TW': 'Google翻譯接口今日被限制使用',
       'ja': 'Google翻訳APIの今日の使用が制限されています',
       'ko': 'Google 번역 API가 오늘 사용이 제한되었습니다',
       'ar': 'واجهة برمجة ترجمة Google مقيدة اليوم',
       'en': 'Google Translate API is restricted today',
-      'fr': "L'API Google Translate est restreinte aujourd'hui",
-      'de': 'Die Google Translate API ist heute eingeschränkt',
-      'es': 'La API de Google Translate está restringida hoy'
     };
   }
 
@@ -73,7 +53,6 @@ class TranslationService {
       
       switch (this.targetLang) {
         case 'zh-CN':
-        case 'zh-TW':
           if ((code >= 0x4E00 && code <= 0x9FFF) ||
               (code >= 0x3400 && code <= 0x4DBF) ||
               (code >= 0x20000 && code <= 0x2A6DF) ||
@@ -100,9 +79,6 @@ class TranslationService {
           }
           break;
         case 'en':
-        case 'fr':
-        case 'de':
-        case 'es':
           if ((code >= 0x41 && code <= 0x5A) ||
               (code >= 0x61 && code <= 0x7A) ||
               (code >= 0xC0 && code <= 0xFF && code !== 0xD7 && code !== 0xF7)) {
@@ -119,7 +95,8 @@ class TranslationService {
       }
     }
     
-    const threshold = this.thresholds[this.targetLang] || 0.5;
+    const threshold = 0.35;
+    // console.log(`Threshold: ${targetLangChars / totalChars}, TargetLangChars: ${targetLangChars}, TotalChars: ${totalChars} text: ${text}`);
     return totalChars > 0 && (targetLangChars / totalChars) > threshold;
   }
 
