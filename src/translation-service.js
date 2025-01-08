@@ -47,8 +47,8 @@ class TranslationService {
     };
 
     this.errorMessages = {
-      'zh-CN': 'Google翻译接口今日被限制使用，或无法访问Google翻译api，请检查您的代理设置。',
-      'zh-TW': 'Google翻譯接口今日被限制使用，或無法訪問Google翻譯api，請檢查您的代理設置。',
+      'zh-CN': 'Google翻译接口今日被限制使用',
+      'zh-TW': 'Google翻譯接口今日被限制使用',
       'ja': 'Google翻訳APIの今日の使用が制限されています',
       'ko': 'Google 번역 API가 오늘 사용이 제한되었습니다',
       'ar': 'واجهة برمجة ترجمة Google مقيدة اليوم',
@@ -123,6 +123,32 @@ class TranslationService {
     return totalChars > 0 && (targetLangChars / totalChars) > threshold;
   }
 
+  async fetchWithTimeout(url, options = {}, timeout = 5000) {
+    const controller = new AbortController();
+    const signal = controller.signal;
+ 
+    // 设置一个超时定时器
+    const timeoutId = setTimeout(() => {
+        controller.abort();
+        throw new Error('Fetch request timed out');
+    }, timeout);
+ 
+    try {
+        const response = await fetch(url, { ...options, signal });
+        // 如果请求成功，清除定时器
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        // 如果请求被中断（超时或其他原因），清除定时器
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Fetch request aborted due to timeout');
+        } else {
+            throw error;
+        }
+    }
+  }
+
   async translate(text) {
     if (!text.trim()) return '';
 
@@ -133,7 +159,7 @@ class TranslationService {
 
     try {
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${this.targetLang}&dt=t&dt=ld&q=${encodeURIComponent(text)}`;
-      const response = await fetch(url);
+      const response = await this.fetchWithTimeout(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -157,7 +183,12 @@ class TranslationService {
 
       return translatedText;
     } catch (error) {
-      console.error('Translation error:', error);
+      if (error.message == 'Failed to fetch' 
+        || error.message === 'Fetch request aborted due to timeout' 
+        || error.message === 'Fetch request timed out') {
+        return "无法访问Google翻译api，请检查您的代理设置!";
+      }
+      console.error('Translation error:', error.message);
       return this.errorMessages[this.targetLang] || this.errorMessages['en'];
     }
   }

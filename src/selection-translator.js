@@ -80,14 +80,14 @@ class SelectionTranslator {
 
     // 选择文本事件 - 根据设备类型选择不同的事件
     if (isMobile) {
-      document.addEventListener('selectionchange', this.handleSelectionChange.bind(this));
+      document.addEventListener('touchend', this.handleTouchEnd.bind(this));
     } else {
       document.addEventListener('mouseup', this.handleMouseUp.bind(this));
     }
 
     // 点击事件（关闭弹窗）
     if (isMobile) {
-      document.addEventListener('touchend', this.handleDocumentClick.bind(this));
+      document.addEventListener('touchstart', this.handleDocumentClick.bind(this));
     } else {
       document.addEventListener('click', this.handleDocumentClick.bind(this));
     }
@@ -100,10 +100,11 @@ class SelectionTranslator {
 
     // 翻译图标点击事件
     if (isMobile) {
-      this.translateIcon.addEventListener('touchend', (e) => {
+      this.translateIcon.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         this.handleTranslateClick();
-      });
+      }, { passive: false });
     } else {
       this.translateIcon.addEventListener('click', this.handleTranslateClick.bind(this));
     }
@@ -317,27 +318,38 @@ class SelectionTranslator {
     }, 100);
   }
 
-  handleSelectionChange() {
+  // 添加触摸结束事件处理
+  handleTouchEnd(e) {
     if (!this.selectionEnabled) return;
 
-    if (this.selectionTimeout) {
-      clearTimeout(this.selectionTimeout);
+    // 如果点击在翻译图标或弹窗上，不做处理
+    const touch = e.changedTouches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (this.translatePopup.contains(target) || this.translateIcon.contains(target)) {
+      return;
     }
 
     // 添加延时，确保能获取到选中的文本
-    this.selectionTimeout = setTimeout(() => {
+    setTimeout(() => {
       const selection = window.getSelection();
       const text = selection.toString().trim();
 
-      if (!text || this.isSelectionInTranslation(selection)) {
+      // 如果没有选中文本，则隐藏UI
+      if (!text) {
+        this.hideUI();
         return;
       }
 
-      if (text !== this.selectedText) {
-        this.selectedText = text;
-        const range = selection.getRangeAt(0);
-        this.updateIconPosition(range);
+      // 如果选中的是翻译内容，直接返回
+      if (this.isSelectionInTranslation(selection)) {
+        this.hideUI();
+        return;
       }
+
+      // 更新位置
+      this.selectedText = text;
+      const range = selection.getRangeAt(0);
+      this.updateIconPosition(range);
     }, 100);
   }
 
