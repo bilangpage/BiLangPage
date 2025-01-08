@@ -47,7 +47,7 @@ class TranslationService {
       .replace(/[\u{1F000}-\u{1F02F}]/gu, '')   // 移除其他特殊符号
       .replace(/(?:USD|EUR|GBP|JPY|CNY|US\$|CN¥|€|£)\s*/gi, '') // 移除货币代码
       .replace(/[$¥€£¢₹₽₩₪₱]/g, '') // 移除货币符号
-      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '') // 移除标点符号
+      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()，。！？；：、]/g, '') // 移除标点符号
       .replace(/\d+/g, '')  // 移除数字
       .replace(/\s+/g, ''); // 移除空格
 
