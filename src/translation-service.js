@@ -40,64 +40,75 @@ class TranslationService {
   }
 
   isTargetLanguage(text) {
-    let targetLangChars = 0;
-    let totalChars = 0;
-    
-    for (let i = 0; i < text.length; i++) {
-      const code = text.charCodeAt(i);
-      if (code <= 0x2F || (code >= 0x3A && code <= 0x40) || 
-          (code >= 0x5B && code <= 0x60) || (code >= 0x7B && code <= 0x7F)) {
-        continue;
-      }
-      totalChars++;
+    // 移除所有表情符号、特殊字符和标点符号
+    const cleanText = text
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')   // 移除表情符号
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')     // 移除装饰符号
+      .replace(/[\u{1F000}-\u{1F02F}]/gu, '')   // 移除其他特殊符号
+      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '') // 移除标点符号
+      .replace(/\s+/g, ''); // 移除空格
+
+    // 如果目标语言是英语，使用单词和字符混合检测
+    if (this.targetLang === 'en') {
+      // 先找出所有英文单词
+      const englishWords = text.match(/[a-zA-Z]+[a-zA-Z0-9\-']*/g) || [];
       
-      switch (this.targetLang) {
-        case 'zh-CN':
-          if ((code >= 0x4E00 && code <= 0x9FFF) ||
-              (code >= 0x3400 && code <= 0x4DBF) ||
-              (code >= 0x20000 && code <= 0x2A6DF) ||
-              (code >= 0x2A700 && code <= 0x2B73F) ||
-              (code >= 0x2B740 && code <= 0x2B81F) ||
-              (code >= 0x2B820 && code <= 0x2CEAF) ||
-              (code >= 0x2CEB0 && code <= 0x2EBEF)) {
-            targetLangChars++;
-          }
-          break;
-        case 'ja':
-          if ((code >= 0x3040 && code <= 0x309F) ||
-              (code >= 0x30A0 && code <= 0x30FF) ||
-              (code >= 0x4E00 && code <= 0x9FFF) ||
-              (code >= 0xFF66 && code <= 0xFF9F)) {
-            targetLangChars++;
-          }
-          break;
-        case 'ko':
-          if ((code >= 0xAC00 && code <= 0xD7AF) ||
-              (code >= 0x1100 && code <= 0x11FF) ||
-              (code >= 0x3130 && code <= 0x318F)) {
-            targetLangChars++;
-          }
-          break;
-        case 'en':
-          if ((code >= 0x41 && code <= 0x5A) ||
-              (code >= 0x61 && code <= 0x7A) ||
-              (code >= 0xC0 && code <= 0xFF && code !== 0xD7 && code !== 0xF7)) {
-            targetLangChars++;
-          }
-          break;
-        case 'ar':
-          if (code >= 0x0600 && code <= 0x06FF) {
-            targetLangChars++;
-          }
-          break;
-        default:
-          return false;
-      }
+      // 移除所有英文单词，剩下的就是非英文内容
+      const nonEnglishText = cleanText
+        .replace(/[a-zA-Z]+[a-zA-Z0-9\-']*/g, ''); // 移除英文单词
+      
+      // 计算比例：英文单词数 / (英文单词数 + 非英文字符数)
+      const totalCount = englishWords.length + nonEnglishText.length;
+      const ratio = totalCount === 0 ? 0 : englishWords.length / totalCount;
+
+      // console.log('English detection:', {
+      //   text,
+      //   cleanText,
+      //   englishWords,
+      //   nonEnglishText,
+      //   englishWordCount: englishWords.length,
+      //   nonEnglishCharCount: nonEnglishText.length,
+      //   ratio
+      // });
+
+      return ratio > 0.35;
     }
     
-    const threshold = 0.35;
-    // console.log(`Threshold: ${targetLangChars / totalChars}, TargetLangChars: ${targetLangChars}, TotalChars: ${totalChars} text: ${text}`);
-    return totalChars > 0 && (targetLangChars / totalChars) > threshold;
+    // 对于其他语言，使用字符检测逻辑
+    const targetChars = this.getTargetLanguageChars();
+    if (!targetChars) return true;
+
+    if (cleanText.length === 0) return true;
+    
+    const targetCount = cleanText.split('').filter(char => targetChars.test(char)).length;
+    const ratio = targetCount / cleanText.length;
+
+    // console.log(`${this.targetLang} detection:`, {
+    //   text,
+    //   cleanText,
+    //   targetCount,
+    //   totalChars: cleanText.length,
+    //   ratio
+    // });
+
+    return ratio > 0.35;
+  }
+
+  getTargetLanguageChars() {
+    switch (this.targetLang) {
+      case 'zh-CN':
+        return /[\u4e00-\u9fa5]/;
+      case 'ja':
+        return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
+      case 'ko':
+        return /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
+      case 'ar':
+        return /[\u0600-\u06FF]/;
+      case 'en':
+        return /[a-zA-Z]/;
+      default:
+        return null;
+    }
   }
 
   async fetchWithTimeout(url, options = {}, timeout = 5000) {

@@ -67,23 +67,6 @@ const siteAdapters = {
     ]
   },
 
-  // Product Hunt 适配器
-  'producthunt.com': {
-    name: 'Product Hunt',
-    selectors: [
-      {
-        type: 'post',
-        elements: [
-          'main a[href^="/posts/"]',
-          'main a[href^="/products/"]',
-          'h1',
-          'h2',
-          'div[class^="styles_htmlText"]',
-        ]
-      }
-    ]
-  },
-
   // Quora 适配器
   'quora.com': {
     name: 'Quora',
@@ -135,6 +118,23 @@ const siteAdapters = {
         type: 'comment',
         elements: [
           'pre:not([class*=" "])'
+        ]
+      }
+    ]
+  },
+
+  // Product Hunt 适配器
+  'producthunt.com': {
+    name: 'Product Hunt',
+    selectors: [
+      {
+        type: 'post',
+        elements: [
+          'main a[href^="/posts/"]',
+          'main a[href^="/products/"]',
+          'h1',
+          'h2',
+          'div[class^="styles_htmlText"]',
         ]
       }
     ]
