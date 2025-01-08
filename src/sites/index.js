@@ -140,13 +140,210 @@ const siteAdapters = {
     ]
   },
 
+  // 通用适配器
+  'default': {
+    name: 'Default',
+    selectors: [
+      {
+        type: 'main-content',
+        elements: [
+          // 主要内容区域
+          'main article p',
+          'main article h1, main article h2, main article h3, main article h4',
+          'main .content p',
+          'main .post-content p',
+          'main .article-content p',
+          // 文章和段落
+          'article p',
+          '.post-content p',
+          '.article-content p',
+          '.entry-content p',
+          '.content-area p',
+          // 常见的文章容器
+          'div[class*="article"] p',
+          'div[class*="post"] p',
+          'div[class*="content"] > p',
+          // 博客内容
+          '.blog-post p',
+          '.blog-content p',
+          // 文档类内容
+          '.documentation p',
+          '.docs-content p',
+          // 主要区块内容
+          'main p',
+          'main li',
+          '[role="main"] p',
+          '[role="main"] li',
+          // 产品和服务描述
+          '.product-description p',
+          '.service-description p',
+          // 常见主要内容区域
+          '#main-content p',
+          '#content p',
+          '.main-content p',
+          // 标题内容
+          'main h1, main h2, main h3',
+          '#main-content h1, #main-content h2, #main-content h3',
+          'article h1, article h2, article h3',
+          '.content h1, .content h2, .content h3',
+          // 列表内容
+          'main ul li',
+          'main ol li',
+          'article ul li',
+          'article ol li',
+          '.content ul li',
+          '.content ol li',
+          // 详情页内容
+          '.details p',
+          '.detail-content p',
+          // 信息区块
+          '.info-block p',
+          '.information p',
+          // 描述文本
+          '.description p',
+          '[class*="description"] p',
+          // 常见文本容器
+          '[class*="text"] p',
+          '[class*="body"] p',
+          // 链接
+          '#main-content a',
+          'article a',
+          '.content a',
+          '.blog-post a',
+          '.blog-content a',
+          '.documentation a',
+          '.docs-content a',
+          '.main-content a',
+          '.content-area a',
+          '.entry-content a',
+          '.post-content a',
+          '.article-content a',
+        ],
+        exclude: [
+          // 导航
+          'nav',
+          'header',
+          '.navigation',
+          '.nav',
+          '.menu',
+          '.navbar',
+          '#navigation',
+          '[role="navigation"]',
+          // 侧边栏
+          'aside',
+          '.sidebar',
+          '#sidebar',
+          '[role="complementary"]',
+          // 页脚
+          'footer',
+          '.footer',
+          '#footer',
+          '[role="contentinfo"]',
+          // 评论区
+          '.comments',
+          '#comments',
+          '.comment-section',
+          // 广告
+          '.ads',
+          '.advertisement',
+          '.banner',
+          '.promo',
+          // 按钮和交互元素
+          'button',
+          '.btn',
+          '[role="button"]',
+          '.button',
+          // 面包屑
+          '.breadcrumb',
+          '.breadcrumbs',
+          '[aria-label="breadcrumb"]',
+          // 元数据
+          '.meta',
+          '.metadata',
+          '.post-meta',
+          // 社交分享
+          '.share',
+          '.social',
+          '.social-media',
+          // 作者信息
+          '.author-info',
+          '.bio',
+          '.profile',
+          // 相关内容
+          '.related',
+          '.recommended',
+          '.suggestions',
+          // 工具栏
+          '.toolbar',
+          '.tools',
+          // 搜索区域
+          '.search',
+          '#search',
+          '[role="search"]',
+          // 标签
+          '.tags',
+          '.categories',
+          // 弹窗
+          '.modal',
+          '.popup',
+          // 通知
+          '.notification',
+          '.alert',
+          // 购物车
+          '.cart',
+          '.basket',
+          // 登录注册
+          '.login',
+          '.register',
+          '.account',
+          // 语言选择
+          '.language-selector',
+          '.lang-switch',
+          // 版权信息
+          '.copyright',
+          '.legal'
+        ]
+      }
+    ],
+    processElement: (element) => {
+      // 检查元素是否在排除列表中
+      const isExcluded = element.closest(
+        siteAdapters.default.selectors[0].exclude.join(',')
+      );
+      if (isExcluded) return '';
+
+      // 检查元素是否可见
+      const style = window.getComputedStyle(element);
+      if (style.display === 'none' || 
+          style.visibility === 'hidden' || 
+          style.opacity === '0' ||
+          element.offsetParent === null) {
+        return '';
+      }
+
+      // 检查是否是交互元素
+      if (element.closest('button, input, select, textarea')) {
+        return '';
+      }
+
+      const text = element.textContent.trim();
+      // 排除太短的文本
+      if (text.length < 10) return '';
+      
+      return text;
+    }
+  }
 };
 
 // 获取当前网站的适配器
 function getSiteAdapter(hostname) {
-  return Object.entries(siteAdapters).find(([domain]) =>
-    hostname.includes(domain)
+  // 先尝试获取特定网站的适配器
+  const specificAdapter = Object.entries(siteAdapters).find(([domain]) =>
+    hostname.includes(domain) && domain !== 'default'
   )?.[1];
+
+  // 如果没有特定适配器，返回通用适配器
+  return specificAdapter || siteAdapters.default;
 }
 
 // 导出
