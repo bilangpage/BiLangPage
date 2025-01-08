@@ -49,13 +49,13 @@ class TranslationService {
     this.errorMessages = {
       'zh-CN': 'Google翻译接口今日被限制使用，或无法访问Google翻译api，请检查您的代理设置。',
       'zh-TW': 'Google翻譯接口今日被限制使用，或無法訪問Google翻譯api，請檢查您的代理設置。',
-      'ja': 'Google翻訳APIの今日の使用が制限されているか、Google翻訳APIにアクセスできません。プロキシ設定を確認してください。',
-      'ko': 'Google 번역 API가 오늘 사용이 제한되었거나 Google 번역 API에 액세스할 수 없습니다. 프록시 설정을 확인하십시오.',
-      'ar': 'واجهة برمجة ترجمة Google مقيدة اليوم أو لا يمكن الوصول إلى API الترجمة من Google، يرجى التحقق من إعدادات الوكيل الخاص بك.',
-      'en': 'Google Translate API is restricted today or unable to access Google Translate API, please check your proxy settings.',
-      'fr': "L'API Google Translate est restreinte aujourd'hui ou impossible d'accéder à l'API Google Translate, veuillez vérifier vos paramètres de proxy.",
-      'de': 'Die Google Translate API ist heute eingeschränkt oder der Zugriff auf die Google Translate API ist nicht möglich. Bitte überprüfen Sie Ihre Proxy-Einstellungen.',
-      'es': 'La API de Google Translate está restringida hoy o no se puede acceder a la API de Google Translate, verifique su configuración de proxy.'
+      'ja': 'Google翻訳APIの今日の使用が制限されています',
+      'ko': 'Google 번역 API가 오늘 사용이 제한되었습니다',
+      'ar': 'واجهة برمجة ترجمة Google مقيدة اليوم',
+      'en': 'Google Translate API is restricted today',
+      'fr': "L'API Google Translate est restreinte aujourd'hui",
+      'de': 'Die Google Translate API ist heute eingeschränkt',
+      'es': 'La API de Google Translate está restringida hoy'
     };
   }
 
