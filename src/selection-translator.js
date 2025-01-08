@@ -231,15 +231,9 @@ class SelectionTranslator {
 
   updatePopupPosition() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
     if (isMobile) {
-      // 在移动设备上，水平居中，放置在屏幕顶部
-      const popupWidth = this.translatePopup.offsetWidth;
-      const left = Math.max(10, (window.innerWidth - popupWidth) / 2);
-      const top = 20; // 顶部留20px的空间
-      
-      this.translatePopup.style.left = `${left}px`;
-      this.translatePopup.style.top = `${top}px`;
+      this.translatePopup.style.left = `5%`;
+      this.translatePopup.style.top = `20px`;
     } else {
       // 桌面设备保持原有逻辑
       this.translatePopup.style.left = `${this.translateIcon.offsetLeft + 30}px`;
