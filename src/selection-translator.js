@@ -401,6 +401,7 @@ class SelectionTranslator {
     this.translatePopup.style.cssText = `
       position: ${isMobile ? 'fixed' : 'absolute'};
       display: block;
+      width: ${isMobile ? '90%' : 'auto'};
       max-width: ${isMobile ? '90%' : '300px'};
       padding: 16px;
       background-color: ${currentTheme.styles.backgroundColor};
