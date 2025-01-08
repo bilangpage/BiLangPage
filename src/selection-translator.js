@@ -274,6 +274,11 @@ class SelectionTranslator {
       return;
     }
 
+    // 如果选中的是目标语言，则直接返回
+    if (this.translationService.isTargetLanguage(text)) {
+      return;
+    }
+
     this.selectedText = text;
     const range = selection.getRangeAt(0);
     this.updateIconPosition(range);
@@ -301,6 +306,12 @@ class SelectionTranslator {
 
       // 如果选中的是翻译内容，直接返回
       if (this.isSelectionInTranslation(selection)) {
+        this.hideUI();
+        return;
+      }
+
+      // 如果选中的是目标语言，则直接返回
+      if (this.translationService.isTargetLanguage(text)) {
         this.hideUI();
         return;
       }
@@ -336,6 +347,12 @@ class SelectionTranslator {
 
       // 如果选中的是翻译内容，直接返回
       if (this.isSelectionInTranslation(selection)) {
+        this.hideUI();
+        return;
+      }
+
+      // 如果选中的是目标语言，则直接返回
+      if (this.translationService.isTargetLanguage(text)) {
         this.hideUI();
         return;
       }
