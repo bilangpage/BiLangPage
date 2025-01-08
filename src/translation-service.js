@@ -40,36 +40,29 @@ class TranslationService {
   }
 
   isTargetLanguage(text) {
-    // 移除所有表情符号、特殊字符和标点符号
+    // 移除所有表情符号、特殊字符、标点符号、数字和货币符号
     const cleanText = text
       .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')   // 移除表情符号
       .replace(/[\u{2700}-\u{27BF}]/gu, '')     // 移除装饰符号
       .replace(/[\u{1F000}-\u{1F02F}]/gu, '')   // 移除其他特殊符号
+      .replace(/(?:USD|EUR|GBP|JPY|CNY|US\$|CN¥|€|£)\s*/gi, '') // 移除货币代码
+      .replace(/[$¥€£¢₹₽₩₪₱]/g, '') // 移除货币符号
       .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '') // 移除标点符号
+      .replace(/\d+/g, '')  // 移除数字
       .replace(/\s+/g, ''); // 移除空格
 
     // 如果目标语言是英语，使用单词和字符混合检测
     if (this.targetLang === 'en') {
-      // 先找出所有英文单词
-      const englishWords = text.match(/[a-zA-Z]+[a-zA-Z0-9\-']*/g) || [];
+      // 先找出所有英文单词（不包含数字）
+      const englishWords = text.match(/[a-zA-Z]+[a-zA-Z\-']*/g) || [];
       
       // 移除所有英文单词，剩下的就是非英文内容
       const nonEnglishText = cleanText
-        .replace(/[a-zA-Z]+[a-zA-Z0-9\-']*/g, ''); // 移除英文单词
+        .replace(/[a-zA-Z]+[a-zA-Z\-']*/g, ''); // 移除英文单词
       
       // 计算比例：英文单词数 / (英文单词数 + 非英文字符数)
       const totalCount = englishWords.length + nonEnglishText.length;
       const ratio = totalCount === 0 ? 0 : englishWords.length / totalCount;
-
-      // console.log('English detection:', {
-      //   text,
-      //   cleanText,
-      //   englishWords,
-      //   nonEnglishText,
-      //   englishWordCount: englishWords.length,
-      //   nonEnglishCharCount: nonEnglishText.length,
-      //   ratio
-      // });
 
       return ratio > 0.35;
     }
@@ -81,17 +74,17 @@ class TranslationService {
     if (cleanText.length === 0) return true;
     
     const targetCount = cleanText.split('').filter(char => targetChars.test(char)).length;
-    const ratio = targetCount / cleanText.length;
+    const ratio = targetCount === 0 ? 0 : targetCount / cleanText.length;
 
-    // console.log(`${this.targetLang} detection:`, {
-    //   text,
-    //   cleanText,
-    //   targetCount,
-    //   totalChars: cleanText.length,
-    //   ratio
-    // });
+    console.log(`${this.targetLang} detection:`, {
+      text,
+      cleanText,
+      targetCount,
+      totalChars: cleanText.length,
+      ratio
+    });
 
-    return ratio > 0.35;
+    return ratio > 0.25;
   }
 
   getTargetLanguageChars() {
