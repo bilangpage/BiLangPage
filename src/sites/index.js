@@ -399,9 +399,6 @@ const siteAdapters = {
 
       // 获取所有可见文本
       const text = getVisibleText(element).trim();
-
-      // 排除太短的文本
-      if (text.length < 10) return '';
       
       return text;
     }
