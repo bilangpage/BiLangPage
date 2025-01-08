@@ -301,11 +301,41 @@ const siteAdapters = {
           '.lang-switch',
           // 版权信息
           '.copyright',
-          '.legal'
+          '.legal',
+          // 看不到的内容
+          'script',
+          'style',
+          'noscript',
+          'template',
+          '[aria-hidden="true"]',
+          '[hidden]',
+          '[style*="display: none"]',
+          '[style*="display:none"]',
+          '[style*="visibility: hidden"]',
+          '[style*="visibility:hidden"]',
+          '[style*="opacity: 0"]',
+          '[style*="opacity:0"]',
         ]
       }
     ],
     processElement: (element) => {
+      // 排除代码仓库网站
+      const codeRepoHosts = [
+        'github.com',
+        'gitlab.com',
+        'bitbucket.org',
+        'gitee.com',
+        'coding.net',
+        'dev.azure.com',
+        'gist.github.com',
+        'raw.githubusercontent.com',
+        'sourceforge.net',
+        'codeberg.org'
+      ];
+      if (codeRepoHosts.some(host => window.location.hostname.includes(host))) {
+        return '';
+      }
+
       // 检查元素是否在排除列表中
       const isExcluded = element.closest(
         siteAdapters.default.selectors[0].exclude.join(',')
@@ -326,7 +356,50 @@ const siteAdapters = {
         return '';
       }
 
-      const text = element.textContent.trim();
+      // 递归获取可见文本内容
+      function getVisibleText(node) {
+        // 如果是文本节点，直接返回内容
+        if (node.nodeType === Node.TEXT_NODE) {
+          return node.textContent;
+        }
+
+        // 如果不是元素节点，返回空字符串
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return '';
+        }
+
+        // 检查元素是否是需要排除的标签
+        const tagName = node.tagName.toLowerCase();
+        if (['script', 'style', 'noscript', 'template'].includes(tagName)) {
+          return '';
+        }
+
+        // 检查元素是否有隐藏属性
+        if (node.hasAttribute('hidden') || 
+            node.getAttribute('aria-hidden') === 'true') {
+          return '';
+        }
+
+        // 检查元素的样式
+        const nodeStyle = window.getComputedStyle(node);
+        if (nodeStyle.display === 'none' || 
+            nodeStyle.visibility === 'hidden' || 
+            nodeStyle.opacity === '0' ||
+            node.offsetParent === null) {
+          return '';
+        }
+
+        // 递归处理子节点
+        let text = '';
+        for (const childNode of node.childNodes) {
+          text += getVisibleText(childNode);
+        }
+        return text;
+      }
+
+      // 获取所有可见文本
+      const text = getVisibleText(element).trim();
+
       // 排除太短的文本
       if (text.length < 10) return '';
       
