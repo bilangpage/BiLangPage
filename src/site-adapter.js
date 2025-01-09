@@ -62,6 +62,7 @@ const siteAdapters = {
         type: 'tweet',
         elements: [
           'article[data-testid="tweet"] div[lang] span', 
+          'article[data-testid="notification"] div[lang] span',
         ]
       }
     ]
@@ -239,6 +240,7 @@ const siteAdapters = {
           '.footer',
           '#footer',
           '[role="contentinfo"]',
+          '.entry-footer',
           // 评论区
           '.comments',
           '#comments',
@@ -319,23 +321,6 @@ const siteAdapters = {
       }
     ],
     processElement: (element) => {
-      // 排除代码仓库网站
-      const codeRepoHosts = [
-        'github.com',
-        'gitlab.com',
-        'bitbucket.org',
-        'gitee.com',
-        'coding.net',
-        'dev.azure.com',
-        'gist.github.com',
-        'raw.githubusercontent.com',
-        'sourceforge.net',
-        'codeberg.org'
-      ];
-      if (codeRepoHosts.some(host => window.location.hostname.includes(host))) {
-        return '';
-      }
-
       // 检查元素是否在排除列表中
       const isExcluded = element.closest(
         siteAdapters.default.selectors[0].exclude.join(',')
@@ -399,7 +384,6 @@ const siteAdapters = {
 
       // 获取所有可见文本
       const text = getVisibleText(element).trim();
-      
       return text;
     }
   }

@@ -34,7 +34,8 @@
       ],
       "js": [
         "src/themes.js",
-        "src/sites/index.js",
+        "src/exclude-words.js",
+        "src/site-adapter.js",
         "src/translation-service.js",
         "src/selection-translator.js",
         "src/page-translator.js",
