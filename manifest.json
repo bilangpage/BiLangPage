@@ -25,7 +25,9 @@
   ],
   "host_permissions": [
     "*://*/*",
-    "https://translate.googleapis.com/*"
+    "https://translate.googleapis.com/*",
+    "https://api.cognitive.microsofttranslator.com/*",
+    "https://edge.microsoft.com/*"
   ],
   "content_scripts": [
     {
