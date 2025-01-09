@@ -59,6 +59,7 @@ chrome.runtime.onInstalled.addListener(() => {
     targetLang: getDefaultTargetLang(),
     theme: 'dark',
     enabled: true,
-    selectionEnabled: false  // 默认禁用划词翻译
+    enableUniversalAdapter: false,
+    selectionEnabled: false
   });
 }); 

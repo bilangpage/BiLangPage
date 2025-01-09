@@ -151,7 +151,7 @@ class SelectionTranslator {
     }
 
     // 处理主题变化
-    if (settings.theme) {
+    if ('theme' in settings && settings.theme && this.theme !== settings.theme) {
       this.updateIconStyle(settings.theme);
     }
   }
@@ -174,7 +174,7 @@ class SelectionTranslator {
       if (this.isProcessingChange) {
         return true;
       }
-      
+      console.log('message', message);
       this.handleSettingChange(message);
       return true;
     });

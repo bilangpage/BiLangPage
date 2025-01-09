@@ -26,6 +26,7 @@ class PageTranslator {
     this.translatedTexts = new Set();
     this.observer = null;
     this.enabled = false;
+    this.enableUniversalAdapter = false;
     this.lastSettings = {};
     this.isProcessingChange = false; // 添加处理锁
 
@@ -55,7 +56,7 @@ class PageTranslator {
       if (this.isProcessingChange) {
         return true;
       }
-      
+      console.log('message', message);
       this.handleSettingChange(message);
       return true;
     });
@@ -68,7 +69,7 @@ class PageTranslator {
       }
 
       try {
-        const settings = await chrome.storage.sync.get(['enabled', 'targetLang', 'theme']);
+        const settings = await chrome.storage.sync.get(['enabled', 'targetLang', 'theme', 'enableUniversalAdapter']);
         if (this.settingsChanged(settings)) {
           this.isProcessingChange = true;
           await this.handleSettingChange(settings);
@@ -94,7 +95,7 @@ class PageTranslator {
     }
 
     // 处理目标语言变化
-    if (settings.targetLang && this.translationService.targetLang !== settings.targetLang) {
+    if ('targetLang' in settings && settings.targetLang && this.translationService.targetLang !== settings.targetLang) {
       this.translationService.setTargetLang(settings.targetLang);
       if (this.enabled) {
         this.removeAllTranslations();
@@ -103,8 +104,20 @@ class PageTranslator {
     }
 
     // 处理主题变化
-    if (settings.theme) {
+    if ('theme' in settings && settings.theme && this.theme !== settings.theme) {
       this.updateTranslationsStyle(settings.theme);
+    }
+
+    // 处理通用适配器变化
+    if ('enableUniversalAdapter' in settings && this.enableUniversalAdapter !== settings.enableUniversalAdapter) {
+      if (!this.enableUniversalAdapter && settings.enableUniversalAdapter) {
+        this.enableUniversalAdapter = settings.enableUniversalAdapter;
+        await this.debouncedTranslate();
+        return;
+      }else{
+        this.enableUniversalAdapter = settings.enableUniversalAdapter;
+        this.removeAllTranslations();
+      }
     }
   }
 
@@ -124,10 +137,11 @@ class PageTranslator {
   async initializeState() {
     try {
       // 获取初始设置
-      const { targetLang, enabled = true } = await chrome.storage.sync.get(['targetLang', 'enabled']);
+      const { targetLang, enabled = true, enableUniversalAdapter = false } = await chrome.storage.sync.get(['targetLang', 'enabled', 'enableUniversalAdapter']);
       
       // 设置初始状态
       this.enabled = enabled;
+      this.enableUniversalAdapter = enableUniversalAdapter;
       if (targetLang) {
         this.translationService.setTargetLang(targetLang);
       }
@@ -242,6 +256,11 @@ class PageTranslator {
     // 获取当前网站的适配器
     const currentSite = window.siteAdapters.getSiteAdapter(window.location.hostname);
     if (!currentSite) {
+      return;
+    }
+
+    // 如果当前适配器是通用适配器且未启用，则跳过翻译
+    if(currentSite.name === 'Default' && !this.enableUniversalAdapter) {
       return;
     }
 

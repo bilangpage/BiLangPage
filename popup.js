@@ -24,16 +24,12 @@ async function updateSetting(key, value) {
   try {
     // 1. 更新存储
     await chrome.storage.sync.set({ [key]: value });
-    
     // 2. 尝试发送消息（作为备用方案）
     try {
       const tabs = await chrome.tabs.query({});
       for (const tab of tabs) {
         chrome.tabs.sendMessage(tab.id, { 
-          type: key === 'enabled' ? 'toggleTranslation' : 
-                key === 'selectionEnabled' ? 'toggleSelection' :
-                key === 'targetLang' ? 'updateTargetLang' :
-                key === 'theme' ? 'updateTheme' : 'updateSetting',
+          type: 'updateSetting',
           [key]: value 
         }).catch(() => {
           // 忽略消息发送失败
@@ -66,6 +62,10 @@ document.getElementById('theme').addEventListener('change', (event) => {
   updateSetting('theme', event.target.value);
 });
 
+document.getElementById('enableUniversalAdapter').addEventListener('change', (event) => {
+  updateSetting('enableUniversalAdapter', event.target.checked);
+}); 
+
 // 更新界面文本语言
 function updateUILanguage(targetLang) {
   const labels = {
@@ -75,6 +75,13 @@ function updateUILanguage(targetLang) {
       'ja': '翻訳を有効にする',
       'ko': '번역 활성화',
       'ar': 'تفعيل الترجمة'
+    },
+    'enableUniversalAdapterLabel': {
+      'zh-CN': '启用通用适配',
+      'en': 'Enable Universal Adapter',
+      'ja': '一般適応を有効にする',
+      'ko': '일반 적응 활성화',
+      'ar': 'تفعيل التكيف العام'
     },
     'enableSelectionLabel': {
       'zh-CN': '启用划词翻译',
@@ -96,6 +103,13 @@ function updateUILanguage(targetLang) {
       'ja': 'テーマスタイル',
       'ko': '테마 스타일',
       'ar': 'نمط المظهر'
+    },
+    'universalAdapterTip': {
+      'zh-CN': '对于未适配的网站，可启用通用适配方案来翻译',
+      'en': 'For unsupported websites, enable Universal Adapter for translation',
+      'ja': '未対応のウェブサイトには、汎用アダプターを有効にして翻訳できます',
+      'ko': '지원되지 않는 웹사이트의 경우 범용 어댑터를 활성화하여 번역할 수 있습니다',
+      'ar': 'للمواقع غير المدعومة، يمكنك تفعيل المحول العام للترجمة'
     }
   };
 
@@ -110,18 +124,15 @@ function updateUILanguage(targetLang) {
 
 // 初始化界面状态
 document.addEventListener('DOMContentLoaded', async () => {
-  const { enabled, selectionEnabled, targetLang, theme } = await chrome.storage.sync.get(['enabled', 'selectionEnabled', 'targetLang', 'theme']);
-  
-  document.getElementById('enableTranslation').checked = enabled !== false;
+  const { enabled, selectionEnabled, targetLang, theme, enableUniversalAdapter } = await chrome.storage.sync.get(['enabled', 'selectionEnabled', 'targetLang', 'theme', 'enableUniversalAdapter']);
+  document.getElementById('enableTranslation').checked = enabled === true;
   document.getElementById('enableSelection').checked = selectionEnabled === true;
-  
+  document.getElementById('enableUniversalAdapter').checked = enableUniversalAdapter === true;
   if (targetLang) {
     document.getElementById('targetLang').value = targetLang;
   }
-  
   if (theme) {
     document.getElementById('theme').value = theme;
   }
-  
   updateUILanguage(targetLang || 'zh-CN');
 }); 

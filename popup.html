@@ -185,14 +185,6 @@
       </label>
     </div>
 
-    <div class="switch-wrapper">
-      <label class="settings-label" id="enableSelectionLabel">Enable Selection Translation</label>
-      <label class="switch">
-        <input type="checkbox" id="enableSelection">
-        <span class="slider"></span>
-      </label>
-    </div>
-
     <div class="settings-group">
       <label class="settings-label" id="targetLanguageLabel">Target Language</label>
       <div class="select-wrapper">
@@ -223,6 +215,26 @@
         </select>
       </div>
     </div>
+
+    <div class="switch-wrapper">
+      <label class="settings-label" id="enableSelectionLabel">Enable Selection Translation</label>
+      <label class="switch">
+        <input type="checkbox" id="enableSelection">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="switch-wrapper">  
+      <label class="settings-label" id="enableUniversalAdapterLabel">Enable Universal Adapter</label>
+      <label class="switch">
+        <input type="checkbox" id="enableUniversalAdapter">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div style="color: #888; font-size: 12px; margin: -12px 0 12px 0; line-height: 1.4;" 
+      id="universalAdapterTip">
+    </div>    
   </div>
   <script src="popup.js"></script>
 </body>
