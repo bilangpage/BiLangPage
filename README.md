@@ -25,7 +25,7 @@ BiLangPage is a Chrome extension that provides instant bilingual translations fo
 
 ## Features
 
-- 🌐 Real-time translation powered by Google Translate API
+- 🌐 Real-time translation powered by Google and Microsoft Translate API
 - 🎨 Multiple theme options for translated text
 - 🚀 Fast and responsive with dynamic content
 - 🔄 Automatic language detection
@@ -36,9 +36,9 @@ BiLangPage is a Chrome extension that provides instant bilingual translations fo
 
 - Reddit: Posts, comments, and community content
 - X (Twitter): Tweets and conversations
-- Product Hunt: Product descriptions and discussions
 - Quora: Questions, answers, and comments
 - Medium: Articles, stories, and responses
+- Product Hunt: Product descriptions and discussions
 
 ## Benefits of Site-Specific Adapters
 
@@ -49,6 +49,10 @@ Our site-specific adapter approach ensures the best user experience. By creating
 - ✓ Handle dynamic content loading seamlessly
 - ✓ Avoid interfering with interactive elements
 - ✓ Provide consistent translation placement across different pages
+
+## Support Universal Adapter
+
+For unsupported websites, enable Universal Adapter for translation, but the experience is not guaranteed.
 
 ## Installation
 
