@@ -51,7 +51,7 @@ class TranslationService {
     try {
       const testText = "你好";
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&dt=ld&q=${encodeURIComponent(testText)}`;
-      const response = await this.fetchWithTimeout(url);
+      const response = await this.fetchWithTimeout(url, {}, 1000);
       if (!response.ok) {
         this.isGoogleTranslateAvailable = false;
         return;
@@ -59,10 +59,10 @@ class TranslationService {
       const data = await response.json();
       const translatedText = data?.[0]?.[0]?.[0];
       this.isGoogleTranslateAvailable = translatedText?.toLowerCase() === 'hello';
-      console.log("isGoogleTranslateAvailable:",this.isGoogleTranslateAvailable);
+      console.log("isGoogleTranslateAvailable:", this.isGoogleTranslateAvailable);
     } catch (error) {
       this.isGoogleTranslateAvailable = false;
-      console.log("isGoogleTranslateAvailable:",this.isGoogleTranslateAvailable);
+      console.log("isGoogleTranslateAvailable:", this.isGoogleTranslateAvailable);
     }
   }
 
@@ -76,7 +76,7 @@ class TranslationService {
       // 获取新token
       const authResponse = await fetch('https://edge.microsoft.com/translate/auth');
       const authToken = await authResponse.text();
-      
+
       // 保存token
       this.msTranslateToken = authToken;
 
