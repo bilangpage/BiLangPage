@@ -164,6 +164,14 @@ class PageTranslator {
         return;
       }
 
+      // 如果启用了翻译但未启用通用适配器，检测页面语言
+      if (enabled && !this.enableUniversalAdapter) {
+        const currentSite = window.siteAdapters.getSiteAdapter(window.location.hostname);
+        if (currentSite.name === 'Default') {
+          await this.detectPageLanguage();
+        }
+      }
+
       // 配置观察器
       this.observer = new MutationObserver((mutations) => {
         if (!this.enabled) return;  // 如果禁用了翻译，直接返回
@@ -550,6 +558,147 @@ class PageTranslator {
         border-radius: 4px !important;
       `;
     });
+  }
+
+  async detectPageLanguage() {
+    try {
+      // 先检查是否设置了不再提示
+      const { hideUniversalAdapterTip } = await chrome.storage.sync.get(['hideUniversalAdapterTip']);
+      if (hideUniversalAdapterTip) {
+        return;
+      }
+
+      // 使用通用适配器的选择器获取所有可能需要翻译的元素
+      const defaultAdapter = window.siteAdapters.getSiteAdapter('Default');
+      if (!defaultAdapter) return;
+      
+      const elements = this.getTranslatableElements(defaultAdapter);
+      if (elements.length === 0) return;
+
+      let nonTargetLangCount = 0;
+      let totalValidElements = 0;
+
+      // 遍历元素检查语言
+      for (const element of elements) {
+        const text = element.textContent.trim();
+        if (!text) continue;  // 跳过空文本
+
+        totalValidElements++;
+        if (!this.translationService.isTargetLanguage(text)) {
+          nonTargetLangCount++;
+        }
+      }
+
+      // 计算非目标语言的比例
+      if (totalValidElements > 0) {
+        const nonTargetLangRatio = nonTargetLangCount / totalValidElements;
+        if (nonTargetLangRatio > 0.8) {
+          const { theme = 'dark' } = await chrome.storage.sync.get(['theme']);
+          this.showEnableUniversalAdapterTip(this.themes[theme] || this.themes.dark);
+        }
+      }
+    } catch (error) {
+      console.error('检测页面语言失败:', error);
+    }
+  }
+
+  showEnableUniversalAdapterTip(currentTheme) {
+    // 创建提示框
+    const tipContainer = document.createElement('div');
+    tipContainer.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px;
+      background-color: ${currentTheme.styles.backgroundColor};
+      border: 1px solid ${currentTheme.styles.borderLeftColor};
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      z-index: 999999;
+      max-width: 300px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: ${currentTheme.styles.color};
+      animation: slideIn 0.3s ease-out;
+    `;
+
+    // 添加动画样式
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // 根据目标语言选择提示文案
+    const messages = {
+      'zh-CN': '检测到当前页面可能需要翻译，但您未设置"启用通用适配"。您可以在BiLangPage的设置中启用通用适配器来开启翻译。',
+      'ja': '現在のページは翻訳が必要かもしれませんが、「汎用アダプターを有効にする」が設定されていません。BiLangPageの設定で汎用アダプターを有効にして翻訳を開始できます。',
+      'ko': '현재 페이지는 번역이 필요할 수 있지만 "범용 어댑터 활성화"가 설정되지 않았습니다. BiLangPage 설정에서 범용 어댑터를 활성화하여 번역을 시작할 수 있습니다.',
+      'ar': 'قد تحتاج هذه الصفحة إلى الترجمة، ولكن لم يتم تعيين "تمكين المحول العام". يمكنك تفعيل المحول العام في إعدادات BiLangPage لبدء الترجمة.',
+      'en': 'This page may need translation, but "Enable Universal Adapter" is not set. You can enable the universal adapter in BiLangPage settings to start translation.'
+    };
+
+    const closeButtonText = {
+      'zh-CN': '不再提示',
+      'ja': '今後表示しない',
+      'ko': '다시 표시하지 않음',
+      'ar': 'لا تظهر مرة أخرى',
+      'en': 'Don\'t show again'
+    };
+
+    const targetLang = this.translationService.targetLang;
+    const message = messages[targetLang] || messages['en'];
+    const closeText = closeButtonText[targetLang] || closeButtonText['en'];
+
+    // 提示内容
+    tipContainer.innerHTML = `
+      <div style="display: flex; align-items: center; margin-bottom: 12px;">
+        <span style="
+          font-weight: 500;
+          font-size: 16px;
+        ">BiLangPage</span>
+      </div>
+      <div style="margin-bottom: 12px;">
+        ${message}
+      </div>
+      <div style="display: flex; justify-content: flex-end;">
+        <button id="closeTip" style="
+          padding: 6px 12px;
+          border: 1px solid ${currentTheme.styles.borderLeftColor};
+          border-radius: 4px;
+          background-color: ${currentTheme.styles.backgroundColor};
+          cursor: pointer;
+          color: ${currentTheme.styles.color};
+        ">${closeText}</button>
+      </div>
+    `;
+
+    // 添加到页面
+    document.body.appendChild(tipContainer);
+
+    // 添加关闭按钮事件监听
+    document.getElementById('closeTip').addEventListener('click', async () => {
+      // 保存不再提示的设置
+      await chrome.storage.sync.set({ hideUniversalAdapterTip: true });
+      tipContainer.remove();
+    });
+
+    // 10秒后自动关闭
+    setTimeout(() => {
+      if (document.body.contains(tipContainer)) {
+        tipContainer.remove();
+      }
+    }, 10000);
   }
 }
 
