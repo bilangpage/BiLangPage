@@ -193,6 +193,8 @@ class TranslationService {
     let processedText = text;
     // 移除URL
     processedText = processedText.replace(/(?:https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, '');
+    // 移除不完整URL，只有查询参数字符串
+    processedText = processedText.replace(/\/?\?[a-zA-Z0-9_=-]+=[a-zA-Z0-9_=-]+(&[a-zA-Z0-9_=-]+=[a-zA-Z0-9_=-]+)*/g, ''); // 例如：/?twclid=2-1lhirw4yf9rowf93umqms4u0v
     // 移除无意义的标识符字符串
     processedText = processedText.replace(/\b(?:[a-z]+[_=]|[_=])[a-z0-9]{8,}\b/gi, '');  // 例如：access_a9radsad, token_12345678, =abcd12345
     processedText = processedText.replace(/\b[a-z]+[-_=][a-z0-9]{4,}[-_=][a-z0-9]{4,}\b/gi, '');  // 例如：user-a4f5-b9c2, api_token_123456
