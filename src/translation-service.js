@@ -42,9 +42,12 @@ class TranslationService {
     this.isGoogleTranslateAvailable = false;
     this.detectGoogleTranslateAvailability();
 
+    // 初始化时探测微软翻译 API 是否可用
     // Microsoft Translate token 相关
     this.msTranslateToken = null;
     this.msTokenTimer = null;
+    this.isMicrosoftTranslateAvailable = false;
+    this.detectMicrosoftTranslateAvailability();
   }
 
   async detectGoogleTranslateAvailability() {
@@ -66,6 +69,18 @@ class TranslationService {
     }
   }
 
+  async detectMicrosoftTranslateAvailability() {
+    try {
+      const testText = "你好";
+      const resultText = await this.microsoftTranslate(testText);
+      this.isMicrosoftTranslateAvailable = resultText !== "Microsoft " + (this.errorMessages[this.targetLang] || this.errorMessages['en']);
+      console.log("isMicrosoftTranslateAvailable:", this.isMicrosoftTranslateAvailable);
+    } catch (error) {
+      this.isMicrosoftTranslateAvailable = false;
+      console.log("isMicrosoftTranslateAvailable:", this.isMicrosoftTranslateAvailable);
+    }
+  }
+
   async getMicrosoftToken() {
     // 如果已有token且定时器存在，直接返回token
     if (this.msTranslateToken && this.msTokenTimer) {
@@ -76,6 +91,9 @@ class TranslationService {
       // 获取新token
       const authResponse = await fetch('https://edge.microsoft.com/translate/auth');
       const authToken = await authResponse.text();
+      if (!authToken || authToken.length === 0) {
+        throw new Error('Failed to get Microsoft translation token');
+      }
 
       // 保存token
       this.msTranslateToken = authToken;
@@ -85,7 +103,7 @@ class TranslationService {
         clearTimeout(this.msTokenTimer);
       }
 
-      // 设置新的定时器，15秒后清除token
+      // 设置新的定时器，3秒后清除token
       this.msTokenTimer = setTimeout(() => {
         this.msTranslateToken = null;
         this.msTokenTimer = null;
@@ -99,41 +117,42 @@ class TranslationService {
   }
 
   async microsoftTranslate(text) {
-    try {
-      // 获取token（使用缓存机制）
-      const authToken = await this.getMicrosoftToken();
-      if (!authToken) {
-        throw new Error('Failed to get Microsoft translation token');
-      }
-
-      // 使用token进行翻译请求
-      const response = await fetch(`https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=${this.targetLang}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify([{ text: text }])
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      const detectedLang = data[0]?.detectedLanguage?.language;
-      // 如果检测到的语言是目标语言，则直接返回原文
-      if (detectedLang && this.targetLangMap[this.targetLang]?.includes(detectedLang)) {
-        console.log(`Skipping translation based on API detection: ${detectedLang}`);
-        return text;
-      }
-
-      return data[0]?.translations?.[0]?.text || '';
-    } catch (error) {
-      console.error('Microsoft translation error:', error);
-      return this.errorMessages[this.targetLang] || this.errorMessages['en'];
+    // 获取token（使用缓存机制）
+    const authToken = await this.getMicrosoftToken();
+    if (!authToken) {
+      throw new Error('Failed to get Microsoft translation token');
     }
+
+    // 使用token进行翻译请求
+    let lang = this.targetLang;
+    if (lang === 'zh-CN') {
+      lang = 'zh-Hans';
+    }
+    
+    const response = await fetch(`https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=${lang}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify([{ text: text }])
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // 如果检测到的语言是目标语言，则直接返回原文
+    const detectedLang = data[0]?.detectedLanguage?.language;
+    if (detectedLang && this.targetLangMap[this.targetLang]?.includes(detectedLang)) {
+      console.log(`Skipping translation based on API detection: ${detectedLang}`);
+      return text;
+    }
+
+    return data[0]?.translations?.[0]?.text || '';
   }
 
   async translate(text) {
@@ -144,49 +163,47 @@ class TranslationService {
       return text;
     }
 
-    // 根据 Google 翻译 API 的可用性选择翻译服务
-    if (this.isGoogleTranslateAvailable) {
-      // 交替使用两个翻译服务
-      this.lastTranslator = this.lastTranslator === 'google' ? 'microsoft' : 'google';
-      if (this.lastTranslator === 'google') {
-        return this.googleTranslate(text);
+    try {
+      // 根据 Google 翻译 API 的可用性选择翻译服务
+      if (this.isGoogleTranslateAvailable) {
+        // 轮到使用Google翻译，或者微软翻译不可用
+        this.lastTranslator = this.lastTranslator === 'google' ? 'microsoft' : 'google';
+        if (this.lastTranslator === 'google' || !this.isMicrosoftTranslateAvailable) {
+          return this.googleTranslate(text);
+        }
       }
+      // 轮到使用微软翻译，或者只能用微软翻译了
+      return this.microsoftTranslate(text);
+    } catch (error) {
+      throw new Error(this.errorMessages[this.targetLang] || this.errorMessages['en']);
     }
-    return this.microsoftTranslate(text);
   }
 
   async googleTranslate(text) {
-    try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${this.targetLang}&dt=t&dt=ld&q=${encodeURIComponent(text)}`;
-      const response = await this.fetchWithTimeout(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      const detectedLang = data?.[2] || null;
-
-      // 如果检测到的语言是目标语言，则直接返回原文
-      if (detectedLang && this.targetLangMap[this.targetLang]?.includes(detectedLang)) {
-        console.log(`Skipping translation based on API detection: ${detectedLang}`);
-        return text;
-      }
-
-      let translatedText = '';
-      if (data && data[0]) {
-        translatedText = data[0]
-          .map(item => item[0])
-          .filter(Boolean)
-          .join(' ');
-      }
-
-      return translatedText;
-    } catch (error) {
-      console.error('Google translation error:', error);
-      // 如果 Google 翻译失败，尝试使用微软翻译
-      this.isGoogleTranslateAvailable = false;
-      return this.microsoftTranslate(text);
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${this.targetLang}&dt=t&dt=ld&q=${encodeURIComponent(text)}`;
+    const response = await this.fetchWithTimeout(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const data = await response.json();
+
+    const detectedLang = data?.[2] || null;
+
+    // 如果检测到的语言是目标语言，则直接返回原文
+    if (detectedLang && this.targetLangMap[this.targetLang]?.includes(detectedLang)) {
+      console.log(`Skipping translation based on API detection: ${detectedLang}`);
+      return text;
+    }
+
+    let translatedText = '';
+    if (data && data[0]) {
+      translatedText = data[0]
+        .map(item => item[0])
+        .filter(Boolean)
+        .join(' ');
+    }
+
+    return translatedText;
   }
 
   isTargetLanguage(text) {
@@ -304,27 +321,23 @@ class TranslationService {
 
   async fetchWithTimeout(url, options = {}, timeout = 5000) {
     const controller = new AbortController();
-    const signal = controller.signal;
-
-    // 设置一个超时定时器
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-      throw new Error('Fetch request timed out');
-    }, timeout);
+    const id = setTimeout(() => controller.abort(), timeout);
 
     try {
-      const response = await fetch(url, { ...options, signal });
-      // 如果请求成功，清除定时器
-      clearTimeout(timeoutId);
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(id);
       return response;
     } catch (error) {
-      // 如果请求被中断（超时或其他原因），清除定时器
-      clearTimeout(timeoutId);
+      clearTimeout(id);
       if (error.name === 'AbortError') {
-        throw new Error('Fetch request aborted due to timeout');
-      } else {
-        throw error;
+        throw new Error('Request timeout');
       }
+      throw error;
+    } finally {
+      clearTimeout(id);
     }
   }
 
