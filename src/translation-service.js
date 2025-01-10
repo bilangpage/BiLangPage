@@ -73,7 +73,7 @@ class TranslationService {
     try {
       const testText = "你好";
       const resultText = await this.microsoftTranslate(testText);
-      this.isMicrosoftTranslateAvailable = resultText !== "Microsoft " + (this.errorMessages[this.targetLang] || this.errorMessages['en']);
+      this.isMicrosoftTranslateAvailable = (resultText && resultText !== testText && resultText !== '');
       console.log("isMicrosoftTranslateAvailable:", this.isMicrosoftTranslateAvailable);
     } catch (error) {
       this.isMicrosoftTranslateAvailable = false;
