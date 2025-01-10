@@ -146,10 +146,13 @@ class TranslationService {
 
     // 根据 Google 翻译 API 的可用性选择翻译服务
     if (this.isGoogleTranslateAvailable) {
-      return this.googleTranslate(text);
-    } else {
-      return this.microsoftTranslate(text);
+      // 交替使用两个翻译服务
+      this.lastTranslator = this.lastTranslator === 'google' ? 'microsoft' : 'google';
+      if (this.lastTranslator === 'google') {
+        return this.googleTranslate(text);
+      }
     }
+    return this.microsoftTranslate(text);
   }
 
   async googleTranslate(text) {
