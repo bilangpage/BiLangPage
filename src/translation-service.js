@@ -85,11 +85,11 @@ class TranslationService {
         clearTimeout(this.msTokenTimer);
       }
 
-      // 设置新的定时器，3秒后清除token
+      // 设置新的定时器，15秒后清除token
       this.msTokenTimer = setTimeout(() => {
         this.msTranslateToken = null;
         this.msTokenTimer = null;
-      }, 3000);
+      }, 15000);
 
       return authToken;
     } catch (error) {

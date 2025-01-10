@@ -61,8 +61,14 @@ const siteAdapters = {
       {
         type: 'tweet',
         elements: [
+          // 帖子
           'article[data-testid="tweet"] div[lang] span', 
+          // 通知
           'article[data-testid="notification"] div[lang] span',
+          // 用户简介
+          'div[data-testid="UserDescription"] span',
+          // Who to Follow列表
+          'button[data-testid="UserCell"] div[dir="auto"] span'
         ]
       }
     ]

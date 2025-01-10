@@ -23,7 +23,7 @@ class PageTranslator {
   constructor(translationService, themes) {
     this.translationService = translationService;
     this.themes = themes;
-    this.translatedTexts = new Set();
+    this.translatedTexts = new Map();
     this.observer = null;
     this.enabled = false;
     this.enableUniversalAdapter = false;
@@ -43,7 +43,7 @@ class PageTranslator {
 
     // 绑定方法
     this.translateElements = this.translateElements.bind(this);
-    this.debouncedTranslate = this.debounce(this.translateElements, 200);
+    this.debouncedTranslate = this.debounce(this.translateElements, 0);
     
     // 初始化消息监听和轮询
     this.initializeMessageListener();
@@ -171,6 +171,9 @@ class PageTranslator {
         const currentSite = window.siteAdapters.getSiteAdapter(window.location.hostname);
         if (!currentSite) return;
 
+        let needsTranslation = false;
+        const processedNodes = new Set();
+
         for (const mutation of mutations) {
           // 处理元素移除
           if (mutation.removedNodes.length > 0) {
@@ -183,6 +186,7 @@ class PageTranslator {
                   if (translationElement?.classList?.contains('bilingual-translation')) {
                     const originalText = translationElement.getAttribute('data-original-text');
                     if (originalText) {
+                      // 从缓存中移除该翻译
                       this.translatedTexts.delete(this.md5(originalText));
                     }
                   }
@@ -192,6 +196,7 @@ class PageTranslator {
                 translations.forEach(translation => {
                   const originalText = translation.getAttribute('data-original-text');
                   if (originalText) {
+                    // 从缓存中移除该翻译
                     this.translatedTexts.delete(this.md5(originalText));
                   }
                 });
@@ -200,35 +205,52 @@ class PageTranslator {
           }
 
           // 处理新增元素
-          const hasNewContent = mutation.addedNodes.length > 0 &&
-            Array.from(mutation.addedNodes).some(node => {
-              if (node.nodeType !== 1) return false;
+          if (mutation.addedNodes.length > 0) {
+            for (const node of mutation.addedNodes) {
+              if (node.nodeType !== 1 || processedNodes.has(node)) continue;
 
               // 如果是翻译元素，直接跳过
-              if (node.classList?.contains('bilingual-translation')) return false;
+              if (node.classList?.contains('bilingual-translation')) continue;
 
               // 如果节点或其父节点已经被翻译过，跳过
               let currentNode = node;
+              let shouldSkip = false;
               while (currentNode) {
-                if (currentNode.hasAttribute('data-translated')) return false;
+                if (currentNode.hasAttribute('data-translated')) {
+                  shouldSkip = true;
+                  break;
+                }
                 currentNode = currentNode.parentElement;
               }
+              if (shouldSkip) continue;
 
               // 检查是否匹配选择器
-              return currentSite.selectors.some(selector =>
+              const matchesSelector = currentSite.selectors.some(selector =>
                 selector.elements.some(selectorStr => {
-                  if (selectorStr.includes(' ')) {
-                    return document.querySelector(selectorStr) !== null;
+                  try {
+                    if (selectorStr.includes(' ')) {
+                      // 对于复杂选择器，检查新节点内部的元素
+                      return node.querySelector(selectorStr) !== null;
+                    }
+                    return node.matches(selectorStr);
+                  } catch (e) {
+                    console.error('Invalid selector:', selectorStr, e);
+                    return false;
                   }
-                  return node.matches(selectorStr);
                 })
               );
-            });
 
-          if (hasNewContent) {
-            // 开始翻译新的内容
-            this.debouncedTranslate();
+              if (matchesSelector) {
+                needsTranslation = true;
+                processedNodes.add(node);
+              }
+            }
           }
+        }
+
+        // 如果需要翻译，使用防抖函数调用翻译方法
+        if (needsTranslation) {
+          this.debouncedTranslate();
         }
       });
 
@@ -268,7 +290,7 @@ class PageTranslator {
     document.querySelectorAll('.bilingual-translation').forEach(el => {
       const originalText = el.getAttribute('data-original-text');
       if (originalText) {
-        this.translatedTexts.add(this.md5(originalText));
+        this.translatedTexts.set(this.md5(originalText), el.textContent);
       }
     });
 
@@ -309,8 +331,31 @@ class PageTranslator {
 
   async translateElement(element, currentSite, currentTheme) {
     try {
+      // 使用 data-processing 标记来防止并发处理
+      if (element.hasAttribute('data-processing')) {
+        return;
+      }
+      element.setAttribute('data-processing', 'true');
+
       // 跳过已翻译的元素
       if (element.hasAttribute('data-translated')) {
+        return;
+      }
+
+      // 检查父元素是否已经被翻译
+      let parent = element.parentElement;
+      while (parent) {
+        if (parent.hasAttribute('data-translated')) {
+          return;  // 如果父元素已翻译，跳过当前元素
+        }
+        parent = parent.parentElement;
+      }
+
+      // 获取原文
+      const originalText = currentSite.processElement
+        ? currentSite.processElement(element)
+        : element.textContent.trim();
+      if (!originalText) {
         return;
       }
 
@@ -318,39 +363,52 @@ class PageTranslator {
       const isRedditTitle = window.location.hostname.includes('reddit.com') && 
         (element.matches('shreddit-post a[slot="title"]') || element.matches('h1[slot="title"]'));
 
-      // 检查是否已经存在译文
-      if (isRedditTitle) {
-        // 对于 Reddit 标题，检查内部的翻译元素
-        const existingTranslation = element.querySelector('.bilingual-translation');
-        if (existingTranslation) {
-          return;  // 已存在译文，直接返回
-        }
-      } else {
-        // 对于其他元素，检查下一个兄弟元素
-        if (element.nextElementSibling?.classList?.contains('bilingual-translation')) {
-          return;  // 已存在译文，直接返回
-        }
+      // 再次检查是否已经存在译文（包括正在处理的情况）
+      const existingTranslation = isRedditTitle 
+        ? element.querySelector('.bilingual-translation')
+        : Array.from(element.parentNode.children).find(el => 
+            (el.classList?.contains('bilingual-translation') || el.hasAttribute('data-processing')) && 
+            el.getAttribute('data-original-text') === originalText
+          );
+      if (existingTranslation) {
+        return;
       }
 
-      // 获取原文
-      const originalText = currentSite.processElement
-        ? currentSite.processElement(element)
-        : element.textContent.trim();
-
-      if (!originalText) return;
+      // 检查是否只包含已翻译的子元素
+      const hasOnlyTranslatedChildren = Array.from(element.children).every(child => 
+        child.hasAttribute('data-translated') || 
+        child.classList.contains('bilingual-translation')
+      );
+      if (hasOnlyTranslatedChildren && element.children.length > 0) {
+        return;
+      }
 
       // 检查是否已经翻译过相同的文本
       const textHash = this.md5(originalText);
-      if (this.translatedTexts.has(textHash)) {
-        return;
+      let translatedText = this.translatedTexts.get(textHash);
+      
+      if (!translatedText) {
+        // 如果没有缓存的翻译，调用翻译服务
+        translatedText = await this.translationService.translate(originalText);
+        // 缓存翻译结果
+        if (translatedText !== "" && translatedText !== originalText) {
+          this.translatedTexts.set(textHash, translatedText);
+        }
       }
-      // 先添加到已翻译集合再翻译
-      this.translatedTexts.add(textHash);
 
-      // 翻译文本
-      const translatedText = await this.translationService.translate(originalText);
       // 如果翻译结果为空或与原文相同，则不添加翻译元素
       if (translatedText === "" || translatedText === originalText) {
+        return;
+      }
+
+      // 再次检查是否已经存在译文（防止在翻译过程中被其他进程添加）
+      const translationAddedDuringProcess = isRedditTitle 
+        ? element.querySelector('.bilingual-translation')
+        : Array.from(element.parentNode.children).find(el => 
+            el.classList?.contains('bilingual-translation') && 
+            el.getAttribute('data-original-text') === originalText
+          );
+      if (translationAddedDuringProcess) {
         return;
       }
   
@@ -376,6 +434,8 @@ class PageTranslator {
       element.setAttribute('data-translated', 'true');
     } catch (error) {
       console.error(`处理元素时出错: ${error.message}`);
+    } finally {
+      element.removeAttribute('data-processing');
     }
   }
 
@@ -431,6 +491,7 @@ class PageTranslator {
       }
       el.removeAttribute('data-translated');
     });
+    // 清空翻译缓存
     this.translatedTexts.clear();
   }
 
