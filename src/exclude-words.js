@@ -41,27 +41,7 @@ const interactions = [
   // 内容互动
   'Upvote',
   'Downvote',
-  'Rate',
   'Review',
-  'Thumbs up',
-  'Thumbs down',
-  'React',
-  'Love',
-  'Wow',
-  'Haha',
-  'Sad',
-  'Angry',
-  // 代码仓库
-  'Fork',
-  'Clone',
-  'Pull Request',
-  'Merge',
-  'Commit',
-  'Branch',
-  'Tag',
-  'Issue',
-  'Watch',
-  'Star',
 ];
 
 // 品牌词和产品名列表
