@@ -71,10 +71,10 @@ class TranslationService {
 
   async detectMicrosoftTranslateAvailability() {
     try {
-      const testText = "你好";
+      const testText = "hello";
       const resultText = await this.microsoftTranslate(testText);
       this.isMicrosoftTranslateAvailable = (resultText && resultText !== testText && resultText !== '');
-      console.log("isMicrosoftTranslateAvailable:", this.isMicrosoftTranslateAvailable);
+      console.log("isMicrosoftTranslateAvailable:", this.isMicrosoftTranslateAvailable, "resultText:", resultText);
     } catch (error) {
       this.isMicrosoftTranslateAvailable = false;
       console.log("isMicrosoftTranslateAvailable:", this.isMicrosoftTranslateAvailable);
