@@ -125,7 +125,7 @@ function updateUILanguage(targetLang) {
 // 初始化界面状态
 document.addEventListener('DOMContentLoaded', async () => {
   const { enabled, selectionEnabled, targetLang, theme, enableUniversalAdapter } = await chrome.storage.sync.get(['enabled', 'selectionEnabled', 'targetLang', 'theme', 'enableUniversalAdapter']);
-  document.getElementById('enableTranslation').checked = enabled === true;
+  document.getElementById('enableTranslation').checked = enabled !== false;
   document.getElementById('enableSelection').checked = selectionEnabled === true;
   document.getElementById('enableUniversalAdapter').checked = enableUniversalAdapter === true;
   if (targetLang) {
