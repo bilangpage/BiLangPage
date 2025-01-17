@@ -147,6 +147,33 @@ const siteAdapters = {
     ]
   },
 
+  // 小红书
+  'xiaohongshu.com': {
+    name: '小红书',
+    selectors: [
+      {
+        type: 'post-list',
+        elements: [
+          'section a[class^="title"]'
+        ]
+      },
+      {
+        type: 'post',
+        elements: [
+          'div[id="detail-title"]',
+          'div[id="detail-desc"] span[class^="note-text"]',
+        ]
+      },
+      {
+        type: 'comment',
+        elements: [
+          'div[class^="comment-inner-container"] div[class^="content"] span',
+          'div[class^="comment-inner-container"] span[class^="content"] span'
+        ]
+      }
+    ]
+  },
+
   // 通用适配器
   'default': {
     name: 'Default',
