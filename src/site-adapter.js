@@ -167,11 +167,20 @@ const siteAdapters = {
       {
         type: 'comment',
         elements: [
-          'div[class^="comment-inner-container"] div[class^="content"] span',
-          'div[class^="comment-inner-container"] span[class^="content"] span'
+          'div[class^="comment-inner-container"] div[class^="content"] span[class^="note-text"]',
+          'div[class^="comment-inner-container"] span[class^="content"] span[class^="note-text"]'
         ]
       }
-    ]
+    ],
+    processElement: (element) => {
+      // 排除掉“@用户”的文本不翻译
+      let text = element.textContent;
+      const userLinks = element.querySelectorAll('a[class^="note-content-user"]');
+      userLinks.forEach(link => {
+        text = text.replace(link.textContent, '');
+      });
+      return text.trim();
+    }
   },
 
   // 通用适配器
