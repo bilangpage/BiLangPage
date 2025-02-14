@@ -147,6 +147,64 @@ const siteAdapters = {
     ]
   },
 
+  // 小红书
+  'xiaohongshu.com': {
+    name: '小红书',
+    selectors: [
+      {
+        type: 'post-list',
+        elements: [
+          'section a[class^="title"]'
+        ]
+      },
+      {
+        type: 'post',
+        elements: [
+          'div[id="detail-title"]',
+          'div[id="detail-desc"] span[class^="note-text"]',
+        ]
+      },
+      {
+        type: 'comment',
+        elements: [
+          'div[class^="comment-inner-container"] div[class^="content"] span[class^="note-text"]',
+          'div[class^="comment-inner-container"] span[class^="content"] span[class^="note-text"]'
+        ]
+      }
+    ],
+    processElement: (element) => {
+      // 排除掉“@用户”的文本不翻译
+      let text = element.textContent;
+      const userLinks = element.querySelectorAll('a[class^="note-content-user"]');
+      userLinks.forEach(link => {
+        text = text.replace(link.textContent, '');
+      });
+      return text.trim();
+    }
+  },
+
+  // YouTube 适配器
+  'youtube.com': {
+    name: 'YouTube',
+    selectors: [
+      {
+        type: 'video-card',
+        elements: [
+          'div[id="dismissible"] div[id="details"] div[id="meta"] h3 a yt-formatted-string[id="video-title"]',
+          'ytd-rich-item-renderer div[id="content"] h3[class^="shortsLockupViewModelHostMetadataTitle"]',
+        ]
+      },
+      {
+        type: 'video-detail',
+        elements: [
+          'div[id^="above-the-fold"] div[id="title"]',
+          'ytd-comments div[id="contents"] ytd-comment-thread-renderer ytd-comment-view-model div[id="body"] div[id="main"] div[id="content"]',
+          'div[id="dismissible"] div[class^="details"] div[class^="metadata"] a h3 span[id="video-title"]',
+        ]
+      }
+    ]
+  },
+
   // 通用适配器
   'default': {
     name: 'Default',
